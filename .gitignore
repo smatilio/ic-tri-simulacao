@@ -1,0 +1,10 @@
+# Arquivos de sessao do R/RStudio
+.Rhistory
+.RData
+.Rproj.user/
+
+# Ajuste do Stan (123 MB, acima do limite do GitHub; regenerado por RecuperacaoStan.R)
+fit_stan.rds
+
+# Executaveis compilados (o modelo_tri.exe e recriado a partir do modelo_tri.stan)
+*.exe
