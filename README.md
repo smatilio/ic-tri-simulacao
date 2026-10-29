@@ -24,17 +24,19 @@ A habilidade muda entre os tempos conforme o uso da máquina:
 \end{aligned}
 ```
 
-| Símbolo | Significado | Valor na simulação |
-|---|---|---|
-| $\theta_{i0}$ | habilidade inicial | $N(0, 1)$ |
-| $I_i$ | 1 se a pessoa usa a máquina | Bernoulli(0,9) |
-| $\phi_i$ | quanto a pessoa se beneficia (ou se prejudica) com a máquina | $U(-1, 1)$ |
-| $\delta_{hm}$ | efeito humano-máquina | 0,5 |
-| $\delta_h$ | efeito humano, comum a todos | 0,1 |
-| $a_j$ | discriminação do item | lognormal(0; 0,18) |
-| $b_j$ | dificuldade do item | $N(0, 1)$ |
+| Símbolo | Significado | Valor na simulação | Prior no Stan |
+|---|---|---|---|
+| $\theta_{i0}$ | habilidade inicial | $N(0, 1)$ | $N(0, 1)$ |
+| $I_i$ | 1 se a pessoa usa a máquina | Bernoulli(0,9) | — (observado) |
+| $\phi_i$ | quanto a pessoa se beneficia (ou se prejudica) com a máquina | $U(-1, 1)$ | $U(-1, 1)$ |
+| $\delta_{hm}$ | efeito humano-máquina | 0,5 | half-normal(0, 1) |
+| $\delta_h$ | efeito humano, comum a todos | 0,1 | $N(0, 1)$ |
+| $a_j$ | discriminação do item | lognormal(0; 0,18) | lognormal(0; 0,5) |
+| $b_j$ | dificuldade do item | $N(0, 1)$ | $N(0, 2)$ |
 
 Cenário atual: 1.000 pessoas, 30 itens e `seed = 15` (definidos em [`R/config.R`](R/config.R)).
+
+Distribuições na parametrização do R e do Stan: N(média, desvio-padrão) e lognormal(meanlog, sdlog). As priors estão em [`stan/modelo_tri.stan`](stan/modelo_tri.stan).
 
 ## Estrutura
 
