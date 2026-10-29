@@ -1,29 +1,22 @@
-# Funcoes usadas pelos scripts do estudo de simulacao.
-# Carregue com source("R/funcoes.R") a partir da raiz do projeto.
+# Funcoes usadas nos scripts
 
 
 # Simulacao ------------------------------------------------------------------
 
-# Probabilidades de acerto no modelo 2PL, P = logit^-1(a * (theta - b)).
-# Devolve uma matriz itens x individuos.
+# Probabilidade de acerto no 2PL: P = logit^-1(a * (theta - b))
 calcular_p <- function(theta, a, b) {
   eta <- sweep(outer(a, theta, "*"), MARGIN = 1, STATS = a * b, FUN = "-")
   plogis(eta)   # itens x individuos
 }
 
-# Sorteia as respostas 0/1 a partir das probabilidades de calcular_p().
-# Devolve uma matriz individuos x itens.
+# Sorteia as respostas 0/1 (individuos x itens)
 simular_x <- function(p) {
   t(matrix(rbinom(length(p), 1, as.vector(p)),
            nrow = nrow(p), ncol = ncol(p)))
 }
 
-# Gera um conjunto de dados completo: parametros verdadeiros e respostas nos
-# tempos 0, 1 e 2. Nao salva arquivos nem faz graficos, entao pode ser chamada
-# varias vezes (replicas, cenarios diferentes).
-#
-# Atencao: a ordem dos sorteios abaixo define os dados gerados por uma seed.
-# Mudar essa ordem muda os dados, mesmo com a mesma seed.
+# Gera os parametros verdadeiros e as respostas nos tempos 0, 1 e 2.
+# Obs: nao mudar a ordem dos sorteios, senao a mesma seed gera outros dados.
 simular_dados <- function(n_ind, n_itens, p_uso, delta_hm, delta_h, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
 
@@ -55,14 +48,13 @@ simular_dados <- function(n_ind, n_itens, p_uso, delta_hm, delta_h, seed = NULL)
 
 # Recuperacao ----------------------------------------------------------------
 
-# Correlacao, vies e RMSE entre os valores verdadeiros e os estimados.
+# Correlacao, vies e RMSE entre verdadeiro e estimado
 avaliar_recuperacao <- function(verdadeiro, estimado) {
   c(correlacao = cor(verdadeiro, estimado),
     vies = mean(estimado - verdadeiro),
     RMSE = sqrt(mean((estimado - verdadeiro)^2)))
 }
 
-# Proporcao de valores verdadeiros dentro do intervalo de credibilidade de 90%.
-# `resumo` e a saida de fit$summary(), que tem as colunas q5 e q95.
+# Proporcao dos valores verdadeiros dentro do IC de 90% (q5 e q95 do summary)
 cobertura <- function(verdadeiro, resumo)
   mean(verdadeiro >= resumo$q5 & verdadeiro <= resumo$q95)

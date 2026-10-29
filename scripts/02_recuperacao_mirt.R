@@ -19,7 +19,7 @@ pars  <- coef(mod0, IRTpars = TRUE, simplify = TRUE)$items
 a_hat <- pars[, "a"]
 b_hat <- pars[, "b"]
 
-# 4. Medidas de recuperação (avaliar_recuperacao() em R/funcoes.R)
+# 4. Medidas de recuperação
 resultado <- rbind(
   theta = avaliar_recuperacao(theta_0, theta_hat0),
   a     = avaliar_recuperacao(a, a_hat),

@@ -1,11 +1,11 @@
 # Simulação em TRI: efeito humano-máquina
 
-Estudo de simulação em Teoria de Resposta ao Item (TRI), desenvolvido como projeto de Iniciação Científica. A pergunta é: **a partir das respostas a um mesmo teste aplicado em três momentos, é possível recuperar o efeito do uso de uma máquina sobre a habilidade das pessoas?**
+Projeto de Iniciação Científica: estudo de simulação em Teoria de Resposta ao Item (TRI) para ver se, a partir das respostas a um mesmo teste aplicado em três momentos, é possível recuperar o efeito do uso de uma máquina sobre a habilidade das pessoas.
 
-O estudo gera dados com parâmetros conhecidos e compara duas formas de estimá-los:
+Os dados são gerados com parâmetros conhecidos e estimados de duas formas:
 
-- **mirt**: modelo 2PL clássico, ajustado só no tempo 0 (linha de base);
-- **Stan**: modelo bayesiano longitudinal, que usa os três tempos e estima diretamente os efeitos de interesse.
+- **mirt**: 2PL ajustado só com as respostas do tempo 0, como referência;
+- **Stan**: modelo bayesiano com os três tempos, que estima os efeitos diretamente.
 
 ## Modelo
 
@@ -34,14 +34,14 @@ A habilidade muda entre os tempos conforme o uso da máquina:
 | $a_j$ | discriminação do item | lognormal(0; 0,18) |
 | $b_j$ | dificuldade do item | $N(0, 1)$ |
 
-Cenário atual: 1.000 pessoas, 30 itens e `seed = 15`. Todos os parâmetros do estudo ficam em [`R/config.R`](R/config.R).
+Cenário atual: 1.000 pessoas, 30 itens e `seed = 15` (definidos em [`R/config.R`](R/config.R)).
 
 ## Estrutura
 
 ```
 .
 ├── R/
-│   ├── config.R                  # parâmetros do estudo (fonte única)
+│   ├── config.R                  # parâmetros da simulação
 │   └── funcoes.R                 # simular_dados() e métricas de recuperação
 ├── scripts/
 │   ├── 01_simulacao.R            # gera os dados → output/simulacao.rds
@@ -56,7 +56,7 @@ Cenário atual: 1.000 pessoas, 30 itens e `seed = 15`. Todos os parâmetros do e
 
 ## Como reproduzir
 
-**Requisitos:** R 4.5, CmdStan 2.40 e, no Windows, o [Rtools](https://cran.r-project.org/bin/windows/Rtools/) (necessário para compilar o modelo Stan).
+Requisitos: R 4.5, CmdStan 2.40 e, no Windows, o [Rtools](https://cran.r-project.org/bin/windows/Rtools/) (para compilar o modelo Stan).
 
 1. Clone o repositório e abra `ic-tri-simulacao.Rproj` no RStudio. O [renv](https://rstudio.github.io/renv/) é ativado automaticamente.
 2. Instale os pacotes nas versões registradas no `renv.lock`:
@@ -74,20 +74,20 @@ Cenário atual: 1.000 pessoas, 30 itens e `seed = 15`. Todos os parâmetros do e
    source("scripts/03_recuperacao_stan.R")   # 15 a 20 min (4 cadeias em paralelo)
    ```
 
-O ajuste completo do Stan (`output/fit_stan.rds`, cerca de 120 MB) não é versionado, porque passa do limite do GitHub; o script 03 o recria.
+O `output/fit_stan.rds` (cerca de 120 MB) fica fora do Git porque passa do limite do GitHub; o script 03 cria o arquivo de novo.
 
-No Windows, o `.Rprofile` guarda a biblioteca de pacotes do renv em `%LOCALAPPDATA%\R\renv\library`, fora da pasta do projeto, para que serviços de sincronização (OneDrive, Dropbox) não copiem os pacotes.
+No Windows, o `.Rprofile` deixa os pacotes do renv em `%LOCALAPPDATA%\R\renv\library`, fora do OneDrive.
 
 ## Resultados (uma réplica, `seed = 15`)
 
-**Efeitos globais** (Stan: média a posteriori e intervalo de credibilidade de 90%):
+Efeitos globais (Stan: média a posteriori e intervalo de credibilidade de 90%):
 
 | Parâmetro | Verdadeiro | Estimado | IC 90% |
 |---|---:|---:|---:|
 | $\delta_{hm}$ | 0,5 | 0,489 | [0,418; 0,560] |
 | $\delta_h$ | 0,1 | 0,101 | [0,081; 0,121] |
 
-**Recuperação dos parâmetros** (correlação, viés e RMSE entre o valor verdadeiro e o estimado; cobertura do intervalo de 90%):
+Recuperação dos parâmetros (correlação, viés e RMSE entre o verdadeiro e o estimado; cobertura do intervalo de 90%):
 
 | Parâmetro | Método | Correlação | Viés | RMSE | Cobertura |
 |---|---|---:|---:|---:|---:|
@@ -99,16 +99,16 @@ No Windows, o `.Rprofile` guarda a biblioteca de pacotes do renv em `%LOCALAPPDA
 | $b$ | Stan | 0,998 | −0,039 | 0,065 | 0,933 |
 | $\phi$ (só quem usa a máquina) | Stan | 0,504 | 0,032 | 0,506 | 0,885 |
 
-A comparação favorece o Stan, que usa os dados dos três tempos, enquanto o mirt usa só o tempo 0. O ajuste do Stan convergiu bem: nenhuma transição divergente, $\hat{R}$ máximo de 1,007 e ESS mínimo de cerca de 515.
+Como o Stan usa os três tempos e o mirt só o tempo 0, a comparação favorece o Stan. No ajuste do Stan não houve transições divergentes, o $\hat{R}$ máximo foi 1,007 e o ESS mínimo ficou perto de 515.
 
 ![Recuperação dos parâmetros no Stan](output/recuperacao_stan.png)
 
 ## Limitações e próximos passos
 
-- **O φ individual é pouco identificado.** Com 30 itens, o erro de medida de θ (cerca de 0,3) é da mesma ordem que o efeito individual da máquina (no máximo 0,5), por isso as estimativas de φ ficam encolhidas em direção a zero.
-- **Uma réplica só.** Os números acima vêm de um único conjunto de dados. O próximo passo é um estudo Monte Carlo, com várias réplicas e cenários (N, J, proporção de usuários, valores de δ), usando `simular_dados()`.
-- **Priors provisórias**, a definir com o orientador.
+- O φ de cada pessoa é mal identificado: com 30 itens, o erro de medida de θ (cerca de 0,3) é da mesma ordem que o efeito individual da máquina (no máximo 0,5), então as estimativas de φ ficam puxadas para zero.
+- Os resultados são de uma réplica só. O próximo passo é fazer réplicas Monte Carlo e variar o cenário (N, J, proporção de usuários, valores de δ) com `simular_dados()`.
+- As priors ainda são provisórias e vão ser definidas com o Prof. Gabriel.
 
 ## Autor
 
-Atilio Souza Mantovani
+Atilio Souza Mantovani, com orientação do Prof. Gabriel Assunção.

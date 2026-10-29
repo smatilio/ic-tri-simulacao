@@ -19,7 +19,7 @@ transformed parameters {
   vector[N] theta2 = theta1 + d_hm * (I .* square(phi)) + d_h;
 }
 model {
-  // priors (a definir com o orientador)
+  // priors (falar com o gabriel)
   theta0 ~ std_normal();
   a ~ lognormal(0, 0.5);
   b ~ normal(0, 2);

@@ -2,7 +2,7 @@ rm(list = ls())
 source("R/config.R")
 source("R/funcoes.R")
 
-# 1. Simular os dados (parametros em R/config.R, funcao em R/funcoes.R)
+# 1. Simular os dados
 sim <- simular_dados(
   n_ind    = config$n_ind,
   n_itens  = config$n_itens,
