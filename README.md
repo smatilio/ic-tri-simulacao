@@ -41,7 +41,7 @@ As funções e os parâmetros da simulação ficam em `R/`, o modelo em `stan/` 
 renv::restore()                          # instala os pacotes do renv.lock (só na primeira vez)
 # cmdstanr::install_cmdstan()            # se ainda não tiver o CmdStan
 
-source("scripts/01_simulacao.R")         # gera output/simulacao.rds
+source("scripts/01_simulacao.R")         # gera os dados (output/simulacao.rds e dados_simulados.csv)
 source("scripts/02_recuperacao_mirt.R")  # 2PL no tempo 0 com mirt
 source("scripts/03_recuperacao_stan.R")  # Stan: 15 a 20 min (4 cadeias em paralelo)
 ```

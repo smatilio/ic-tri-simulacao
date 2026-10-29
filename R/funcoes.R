@@ -45,6 +45,20 @@ simular_dados <- function(n_ind, n_itens, p_uso, delta_hm, delta_h, seed = NULL)
   list(verdadeiros = verdadeiros, dados_stan = dados_stan)
 }
 
+# Dados em tabela: uma linha por pessoa e tempo, com o indicador I e as respostas
+dados_em_tabela <- function(sim) {
+  d <- sim$dados_stan
+  respostas <- list(d$X0, d$X1, d$X2)
+  tab <- do.call(rbind, lapply(seq_along(respostas), function(k) {
+    x <- respostas[[k]]
+    colnames(x) <- paste0("item", seq_len(ncol(x)))
+    data.frame(individuo = seq_len(nrow(x)), I = d$I, tempo = k - 1, x)
+  }))
+  tab <- tab[order(tab$individuo, tab$tempo), ]
+  rownames(tab) <- NULL
+  tab
+}
+
 
 # Recuperacao ----------------------------------------------------------------
 

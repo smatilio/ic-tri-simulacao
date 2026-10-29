@@ -36,3 +36,4 @@ abline(0, 1)
 
 # 4. Salvar
 saveRDS(sim, "output/simulacao.rds")
+write.csv2(dados_em_tabela(sim), "output/dados_simulados.csv", row.names = FALSE)   # para abrir no Excel
