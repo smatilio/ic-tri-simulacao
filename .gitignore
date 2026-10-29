@@ -3,10 +3,10 @@
 .RData
 .Rproj.user/
 
-# Fit do Stan (123 MB, passa do limite do GitHub)
+# Fit do Stan 
 output/fit_stan.rds
 
-# Executavel do Stan (e recompilado a partir do .stan)
+# Executavel do Stan e recompilado a partir do .stan
 *.exe
 
 # Criado quando um script roda pelo Rscript
