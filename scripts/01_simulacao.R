@@ -1,66 +1,38 @@
 rm(list = ls())
-set.seed(15)
+source("R/config.R")
+source("R/funcoes.R")
 
-# 1. Dimensoes do experimento
-ind   <- 1000
-itens <- 30
+# 1. Simular os dados (parametros em R/config.R, funcao em R/funcoes.R)
+sim <- simular_dados(
+  n_ind    = config$n_ind,
+  n_itens  = config$n_itens,
+  p_uso    = config$p_uso,
+  delta_hm = config$delta_hm,
+  delta_h  = config$delta_h,
+  seed     = config$seed
+)
+verd  <- sim$verdadeiros
+dados <- sim$dados_stan
 
-# 2. Geracao dos parametros verdadeiros
-theta_0 <- rnorm(ind)
-it      <- rbinom(ind, 1, 0.9)       # 1 = usa a maquina
+# 2. Verificacoes
+stopifnot(all(dim(dados$X0) == c(config$n_ind, config$n_itens)),
+          all(dim(dados$X1) == c(config$n_ind, config$n_itens)),
+          all(dim(dados$X2) == c(config$n_ind, config$n_itens)))
 
-delta_hm <- 0.5
-phi      <- runif(ind, -1, 1)        # phi verdadeiro, sem multiplicar por it
-delta_h  <- 0.1
+mean(verd$it)                                        # perto de config$p_uso
+c(mean(dados$X0), mean(dados$X1), mean(dados$X2))    # proporcao de acertos por tempo
+tapply(verd$theta_1 - verd$theta_0, verd$it, mean)   # ganho medio no tempo 1, por grupo
+tapply(verd$theta_2 - verd$theta_0, verd$it, mean)   # ganho medio no tempo 2, por grupo
+cor(rowMeans(dados$X0), verd$theta_0)                # escore bruto deve ser bem correlacionado com theta
 
-a <- rlnorm(itens, 0, 0.18)
-b <- rnorm(itens, 0, 1)
-
-calcular_p <- function(theta, a, b) {
-  eta <- sweep(outer(a, theta, "*"), MARGIN = 1, STATS = a * b, FUN = "-")
-  plogis(eta)   # itens x individuos
-}
-
-simular_x <- function(p) {
-  t(matrix(rbinom(length(p), 1, as.vector(p)),
-           nrow = nrow(p), ncol = ncol(p)))
-}
-
-# 3. Tempo 0
-x_0 <- simular_x(calcular_p(theta_0, a, b))
-
-# 4. Tempo 1
-theta_1 <- theta_0 + delta_hm * it * phi + delta_h
-x_1 <- simular_x(calcular_p(theta_1, a, b))
-
-# 5. Tempo 2
-theta_2 <- theta_1 + delta_hm * it * phi^2 + delta_h
-x_2 <- simular_x(calcular_p(theta_2, a, b))
-
-# 6. Verificacoes
-stopifnot(all(dim(x_0) == c(ind, itens)),
-          all(dim(x_1) == c(ind, itens)),
-          all(dim(x_2) == c(ind, itens)))
-
-mean(it)                                  # perto de 0,9
-c(mean(x_0), mean(x_1), mean(x_2))        # proporcao de acertos por tempo
-tapply(theta_1 - theta_0, it, mean)       # ganho medio no tempo 1, por grupo
-tapply(theta_2 - theta_0, it, mean)       # ganho medio no tempo 2, por grupo
-cor(rowMeans(x_0), theta_0)               # escore bruto deve ser bem correlacionado com theta
-
-# 7. Graficos 
-cores <- ifelse(it == 1, "blue", "red")
-plot(theta_0, theta_1, col = cores, pch = 16, cex = 0.5,
+# 3. Graficos
+cores <- ifelse(verd$it == 1, "blue", "red")
+plot(verd$theta_0, verd$theta_1, col = cores, pch = 16, cex = 0.5,
      xlab = "Habilidade no tempo 0", ylab = "Habilidade no tempo 1")
 abline(0, 1)
-plot(theta_0, theta_2, col = cores, pch = 16, cex = 0.5,
+plot(verd$theta_0, verd$theta_2, col = cores, pch = 16, cex = 0.5,
      xlab = "Habilidade no tempo 0", ylab = "Habilidade no tempo 2")
 abline(0, 1)
 
-# 8. Salvar
-verdadeiros <- list(theta_0 = theta_0, theta_1 = theta_1, theta_2 = theta_2,
-                    it = it, phi = phi, a = a, b = b,
-                    delta_hm = delta_hm, delta_h = delta_h)
-dados_stan <- list(N = ind, J = itens, X0 = x_0, X1 = x_1, X2 = x_2, I = it)
-saveRDS(list(verdadeiros = verdadeiros, dados_stan = dados_stan), "output/simulacao.rds")
-
+# 4. Salvar
+saveRDS(sim, "output/simulacao.rds")

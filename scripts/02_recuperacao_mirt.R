@@ -1,4 +1,5 @@
 library(mirt)
+source("R/funcoes.R")
 
 # 1. Carregar os dados simulados e os valores verdadeiros
 sim <- readRDS("output/simulacao.rds")
@@ -18,13 +19,7 @@ pars  <- coef(mod0, IRTpars = TRUE, simplify = TRUE)$items
 a_hat <- pars[, "a"]
 b_hat <- pars[, "b"]
 
-# 4. Medidas de recuperação
-avaliar_recuperacao <- function(verdadeiro, estimado) {
-  c(correlacao = cor(verdadeiro, estimado),
-    vies = mean(estimado - verdadeiro),
-    RMSE = sqrt(mean((estimado - verdadeiro)^2)))
-}
-
+# 4. Medidas de recuperação (avaliar_recuperacao() em R/funcoes.R)
 resultado <- rbind(
   theta = avaliar_recuperacao(theta_0, theta_hat0),
   a     = avaliar_recuperacao(a, a_hat),

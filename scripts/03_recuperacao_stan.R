@@ -1,6 +1,8 @@
 library(cmdstanr)
+source("R/config.R")
+source("R/funcoes.R")
 
-sim   <- readRDS("output/simulacao.rds")
+sim  <- readRDS("output/simulacao.rds")
 dados <- sim$dados_stan
 verd  <- sim$verdadeiros
 
@@ -8,26 +10,20 @@ mod <- cmdstan_model("stan/modelo_tri.stan")
 
 fit <- mod$sample(
   data            = dados,
-  chains          = 4,
-  parallel_chains = 4,
-  iter_warmup     = 1000,
-  iter_sampling   = 1000,
-  seed            = 15
+  chains          = config$stan$chains,
+  parallel_chains = config$stan$chains,
+  iter_warmup     = config$stan$iter_warmup,
+  iter_sampling   = config$stan$iter_sampling,
+  seed            = config$seed
 )
 
 fit$save_object("output/fit_stan.rds")
 
 # 1. Diagnosticos de convergencia
 fit$diagnostic_summary()
-fit$summary(c("d_hm", "d_h"))      # compare com 0.5 e 0.1
+fit$summary(c("d_hm", "d_h"))      # compare com verd$delta_hm e verd$delta_h
 
-# 2. Recuperacao (mesma funcao do mirt)
-avaliar_recuperacao <- function(verdadeiro, estimado) {
-  c(correlacao = cor(verdadeiro, estimado),
-    vies = mean(estimado - verdadeiro),
-    RMSE = sqrt(mean((estimado - verdadeiro)^2)))
-}
-
+# 2. Recuperacao (avaliar_recuperacao() em R/funcoes.R)
 theta0_hat <- fit$summary("theta0")$mean       # EAP
 a_hat      <- fit$summary("a")$mean
 b_hat      <- fit$summary("b")$mean
@@ -58,10 +54,7 @@ plot(verd$phi[usa], phi_hat[usa], pch = 16, cex = 0.4,
 par(mfrow = c(1, 1))
 dev.off()
 
-# 4. Cobertura dos intervalos de 90%
-cobertura <- function(verdadeiro, resumo)
-  mean(verdadeiro >= resumo$q5 & verdadeiro <= resumo$q95)
-
+# 4. Cobertura dos intervalos de 90% (cobertura() em R/funcoes.R)
 cobertura_stan <- c(
   theta = cobertura(verd$theta_0, fit$summary("theta0")),
   a     = cobertura(verd$a,       fit$summary("a")),
