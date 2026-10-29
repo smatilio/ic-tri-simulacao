@@ -4,7 +4,7 @@ Projeto de Iniciação Científica: estudo de simulação em Teoria de Resposta 
 
 Os dados são gerados com parâmetros conhecidos e estimados de duas formas:
 
-- **mirt**: 2PL ajustado só com as respostas do tempo 0, como referência;
+- **mirt**: 2PL ajustado só com as respostas do tempo 0.
 - **Stan**: modelo bayesiano com os três tempos, que estima os efeitos diretamente.
 
 ## Modelo
@@ -12,7 +12,7 @@ Os dados são gerados com parâmetros conhecidos e estimados de duas formas:
 Cada pessoa *i* responde aos mesmos *J* itens nos tempos *t* = 0, 1, 2, segundo o modelo logístico de dois parâmetros (2PL):
 
 ```math
-P(X_{ijt} = 1) = \operatorname{logit}^{-1}\big(a_j\,(\theta_{it} - b_j)\big)
+P(X_{ijt} = 1) = \mathrm{logit}^{-1}\big(a_j\,(\theta_{it} - b_j)\big)
 ```
 
 A habilidade muda entre os tempos conforme o uso da máquina:
@@ -87,7 +87,7 @@ Efeitos globais (Stan: média a posteriori e intervalo de credibilidade de 90%):
 | $\delta_{hm}$ | 0,5 | 0,489 | [0,418; 0,560] |
 | $\delta_h$ | 0,1 | 0,101 | [0,081; 0,121] |
 
-Recuperação dos parâmetros (correlação, viés e RMSE entre o verdadeiro e o estimado; cobertura do intervalo de 90%):
+Recuperação dos parâmetros (correlação, viés e RMSE entre o verdadeiro e o estimado, cobertura do intervalo de 90%):
 
 | Parâmetro | Método | Correlação | Viés | RMSE | Cobertura |
 |---|---|---:|---:|---:|---:|
@@ -103,11 +103,10 @@ Como o Stan usa os três tempos e o mirt só o tempo 0, a comparação favorece 
 
 ![Recuperação dos parâmetros no Stan](output/recuperacao_stan.png)
 
-## Limitações e próximos passos
+## Limitações
 
 - O φ de cada pessoa é mal identificado: com 30 itens, o erro de medida de θ (cerca de 0,3) é da mesma ordem que o efeito individual da máquina (no máximo 0,5), então as estimativas de φ ficam puxadas para zero.
-- Os resultados são de uma réplica só. O próximo passo é fazer réplicas Monte Carlo e variar o cenário (N, J, proporção de usuários, valores de δ) com `simular_dados()`.
-- As priors ainda são provisórias e vão ser definidas com o Prof. Gabriel.
+- As priors ainda são provisórias e podem ser alteradas posteriormente.
 
 ## Autor
 
