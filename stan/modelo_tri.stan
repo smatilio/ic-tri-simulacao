@@ -22,7 +22,7 @@ model {
   // priors (falar com o gabriel)
   theta0 ~ std_normal();
   a ~ lognormal(0, 0.5);
-  b ~ normal(0, 2);
+  b ~ normal(0, 5);
   d_hm ~ normal(0, 1);                         // half-normal, pois d_hm > 0
   d_h ~ normal(0, 1);
   // phi ~ uniform(-1, 1) ja esta implicito nos limites

@@ -31,7 +31,7 @@ A tabela abaixo traz os valores usados para gerar os dados e as priors do modelo
 | $\delta_{hm}$ | efeito humano-máquina | 0,5 | half-normal(0, 1) |
 | $\delta_h$ | efeito humano, comum a todos | 0,1 | $N(0, 1)$ |
 | $a_j$ | discriminação do item | lognormal(0; 0,18) | lognormal(0; 0,5) |
-| $b_j$ | dificuldade do item | $N(0, 1)$ | $N(0, 2)$ |
+| $b_j$ | dificuldade do item | $N(0, 1)$ | $N(0, 5)$ |
 
 ## Como reproduzir
 
@@ -50,17 +50,17 @@ O ajuste completo do Stan (`output/fit_stan.rds`, cerca de 120 MB) passa do limi
 
 ## Resultados e discussão (uma réplica, `seed = 15`)
 
-O ajuste do Stan convergiu sem transições divergentes, com $\hat{R}$ máximo de 1,007 e tamanho efetivo de amostra (ESS) mínimo perto de 515. Os dois efeitos globais foram bem recuperados: o efeito humano-máquina ($\delta_{hm}$, valor verdadeiro 0,5) teve média a posteriori de 0,489, com intervalo de credibilidade de 90% de 0,418 a 0,560, e o efeito humano ($\delta_h$, valor verdadeiro 0,1) ficou em 0,101, de 0,081 a 0,121. Para os outros parâmetros, a tabela compara as estimativas com os valores verdadeiros (correlação, viés e RMSE) e mostra, no Stan, a cobertura dos intervalos de 90%.
+O ajuste do Stan convergiu sem transições divergentes, com $\hat{R}$ máximo de 1,009 e tamanho efetivo de amostra (ESS) mínimo perto de 500. Os dois efeitos globais foram bem recuperados: o efeito humano-máquina ($\delta_{hm}$, valor verdadeiro 0,5) teve média a posteriori de 0,492, com intervalo de credibilidade de 90% de 0,422 a 0,561, e o efeito humano ($\delta_h$, valor verdadeiro 0,1) ficou em 0,101, de 0,081 a 0,121. Para os outros parâmetros, a tabela compara as estimativas com os valores verdadeiros (correlação, viés e RMSE) e mostra, no Stan, a cobertura dos intervalos de 90%.
 
 | Parâmetro | Método | Correlação | Viés | RMSE | Cobertura |
 |---|---|---:|---:|---:|---:|
 | $\theta_0$ | mirt | 0,917 | −0,037 | 0,412 | — |
-| $\theta_0$ | Stan | 0,959 | −0,037 | 0,292 | 0,905 |
+| $\theta_0$ | Stan | 0,959 | −0,038 | 0,292 | 0,901 |
 | $a$ | mirt | 0,870 | 0,040 | 0,100 | — |
-| $a$ | Stan | 0,967 | 0,012 | 0,045 | 0,967 |
+| $a$ | Stan | 0,966 | 0,010 | 0,045 | 0,967 |
 | $b$ | mirt | 0,994 | −0,032 | 0,101 | — |
-| $b$ | Stan | 0,998 | −0,039 | 0,065 | 0,933 |
-| $\phi$ (só quem usa a máquina) | Stan | 0,504 | 0,032 | 0,506 | 0,885 |
+| $b$ | Stan | 0,998 | −0,041 | 0,065 | 0,933 |
+| $\phi$ (só quem usa a máquina) | Stan | 0,504 | 0,032 | 0,506 | 0,882 |
 
 ![Recuperação dos parâmetros no Stan](output/recuperacao_stan.png)
 
