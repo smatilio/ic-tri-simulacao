@@ -1,10 +1,10 @@
 library(cmdstanr)
 
-sim   <- readRDS("simulacao.rds")
+sim   <- readRDS("output/simulacao.rds")
 dados <- sim$dados_stan
 verd  <- sim$verdadeiros
 
-mod <- cmdstan_model("modelo_tri.stan")
+mod <- cmdstan_model("stan/modelo_tri.stan")
 
 fit <- mod$sample(
   data            = dados,
@@ -15,7 +15,7 @@ fit <- mod$sample(
   seed            = 15
 )
 
-fit$save_object("fit_stan.rds")
+fit$save_object("output/fit_stan.rds")
 
 # 1. Diagnosticos de convergencia
 fit$diagnostic_summary()
@@ -42,10 +42,10 @@ resultado_stan <- rbind(
 )
 print(round(resultado_stan, 3))
 
-saveRDS(resultado_stan, "resultado_stan.rds")
+saveRDS(resultado_stan, "output/resultado_stan.rds")
 
 # 3. Graficos de recuperacao
-png("recuperacao_stan.png", width = 1200, height = 1000, res = 120)
+png("output/recuperacao_stan.png", width = 1200, height = 1000, res = 120)
 par(mfrow = c(2, 2))
 plot(verd$theta_0, theta0_hat, pch = 16, cex = 0.4,
      xlab = "theta_0 verdadeiro", ylab = "EAP (Stan)"); abline(0, 1, col = "red")

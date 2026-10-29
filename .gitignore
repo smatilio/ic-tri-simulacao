@@ -3,8 +3,11 @@
 .RData
 .Rproj.user/
 
-# Ajuste do Stan (123 MB, acima do limite do GitHub; regenerado por RecuperacaoStan.R)
-fit_stan.rds
+# Ajuste do Stan (123 MB, acima do limite do GitHub; regenerado por scripts/03_recuperacao_stan.R)
+output/fit_stan.rds
 
-# Executaveis compilados (o modelo_tri.exe e recriado a partir do modelo_tri.stan)
+# Executaveis compilados (o stan/modelo_tri.exe e recriado a partir do stan/modelo_tri.stan)
 *.exe
+
+# Graficos que o R grava sozinho quando um script roda fora do RStudio (Rscript)
+Rplots.pdf

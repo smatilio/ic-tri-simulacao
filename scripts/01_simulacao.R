@@ -62,5 +62,5 @@ verdadeiros <- list(theta_0 = theta_0, theta_1 = theta_1, theta_2 = theta_2,
                     it = it, phi = phi, a = a, b = b,
                     delta_hm = delta_hm, delta_h = delta_h)
 dados_stan <- list(N = ind, J = itens, X0 = x_0, X1 = x_1, X2 = x_2, I = it)
-saveRDS(list(verdadeiros = verdadeiros, dados_stan = dados_stan), "simulacao.rds")
+saveRDS(list(verdadeiros = verdadeiros, dados_stan = dados_stan), "output/simulacao.rds")
 
