@@ -73,7 +73,5 @@ print(round(rbind(
 
 # 6. Cadeias e posteriori de d_hm e d_h
 library(bayesplot)
-traceplot <- mcmc_trace(fit$draws(c("d_hm", "d_h")))
-ggplot2::ggsave("output/traceplot_stan.png", traceplot, width = 9, height = 4, dpi = 120)
-traceplot
+salvar_traceplot(fit, "output/traceplot_stan.png")
 mcmc_hist(fit$draws(c("d_hm", "d_h")))

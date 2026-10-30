@@ -50,7 +50,11 @@ O ajuste completo do Stan (`output/fit_stan.rds`, cerca de 120 MB) passa do limi
 
 ## Resultados e discussão (uma réplica, `seed = 15`)
 
-O ajuste do Stan convergiu sem transições divergentes, com $\hat{R}$ máximo de 1,009 e tamanho efetivo de amostra (ESS) mínimo perto de 500. Os dois efeitos globais foram bem recuperados: o efeito humano-máquina ($\delta_{hm}$, valor verdadeiro 0,5) teve média a posteriori de 0,492, com intervalo de credibilidade de 90% de 0,422 a 0,561, e o efeito humano ($\delta_h$, valor verdadeiro 0,1) ficou em 0,101, de 0,081 a 0,121. Para os outros parâmetros, a tabela compara as estimativas com os valores verdadeiros (correlação, viés e RMSE) e mostra, no Stan, a cobertura dos intervalos de 90%.
+O ajuste do Stan convergiu sem transições divergentes, com $\hat{R}$ máximo de 1,009 e tamanho efetivo de amostra (ESS) mínimo perto de 500; no traceplot abaixo, as quatro cadeias de $\delta_{hm}$ e $\delta_h$ se misturam bem. Os dois efeitos globais foram bem recuperados: o efeito humano-máquina ($\delta_{hm}$, valor verdadeiro 0,5) teve média a posteriori de 0,492, com intervalo de credibilidade de 90% de 0,422 a 0,561, e o efeito humano ($\delta_h$, valor verdadeiro 0,1) ficou em 0,101, de 0,081 a 0,121.
+
+![Traceplot das cadeias de δhm e δh no Stan](output/traceplot_stan.png)
+
+Para os outros parâmetros, a tabela compara as estimativas com os valores verdadeiros (correlação, viés e RMSE) e mostra, no Stan, a cobertura dos intervalos de 90%.
 
 | Parâmetro | Método | Correlação | Viés | RMSE | Cobertura |
 |---|---|---:|---:|---:|---:|

@@ -72,3 +72,20 @@ avaliar_recuperacao <- function(verdadeiro, estimado) {
 # Proporcao dos valores verdadeiros dentro do IC de 90% (q5 e q95 do summary)
 cobertura <- function(verdadeiro, resumo)
   mean(verdadeiro >= resumo$q5 & verdadeiro <= resumo$q95)
+
+
+# Graficos -------------------------------------------------------------------
+
+# Traceplot de d_hm e d_h (fundo branco, senao o PNG fica transparente e some no GitHub escuro)
+salvar_traceplot <- function(fit, arquivo) {
+  rotulos <- ggplot2::as_labeller(c(d_hm = "delta[hm]", d_h = "delta[h]"),
+                                  default = ggplot2::label_parsed)
+  p <- bayesplot::mcmc_trace(fit$draws(c("d_hm", "d_h")),
+                             facet_args = list(ncol = 1, labeller = rotulos)) +
+    bayesplot::theme_default(base_family = "sans") +
+    ggplot2::labs(x = "Iteração", y = NULL, colour = "Cadeia") +
+    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(linewidth = 1.5)))
+  p <- suppressMessages(p + ggplot2::scale_colour_brewer(palette = "Dark2"))
+  ggplot2::ggsave(arquivo, p, width = 8, height = 5, dpi = 150, bg = "white")
+  p
+}
