@@ -54,9 +54,7 @@ O ajuste do Stan convergiu sem transições divergentes, com $\hat{R}$ máximo d
 
 ![Traceplot das cadeias de δhm e δh no Stan](output/traceplot_stan.png)
 
-![Rank plot das cadeias de δhm e δh no Stan](output/rankplot_stan.png)
-
-As quatro cadeias se misturam bem em torno dos valores verdadeiros (linhas tracejadas no traceplot) e, no rank plot, ficam perto da linha de referência, o esperado quando todas amostram a mesma distribuição. O $\delta_{hm}$ mistura mais devagar que o $\delta_h$ (ESS de 557 contra 1.770), provavelmente por multiplicar o $\phi_i$ de cada pessoa, que é mal identificado. Para os outros parâmetros, a tabela compara as estimativas com os valores verdadeiros (correlação, viés e RMSE) e mostra, no Stan, a cobertura dos intervalos de 90%.
+No traceplot, as quatro cadeias se misturam bem em torno dos valores verdadeiros (linhas tracejadas). O $\delta_{hm}$ mistura mais devagar que o $\delta_h$ (ESS de 557 contra 1.770), provavelmente por multiplicar o $\phi_i$ de cada pessoa, que é mal identificado. Para os outros parâmetros, a tabela compara as estimativas com os valores verdadeiros (correlação, viés e RMSE) e mostra, no Stan, a cobertura dos intervalos de 90%.
 
 | Parâmetro | Método | Correlação | Viés | RMSE | Cobertura |
 |---|---|---:|---:|---:|---:|
