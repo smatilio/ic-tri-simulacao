@@ -73,5 +73,6 @@ print(round(rbind(
 
 # 6. Cadeias e posteriori de d_hm e d_h
 library(bayesplot)
-salvar_traceplot(fit, "output/traceplot_stan.png")
+salvar_traceplot(fit, verd, "output/traceplot_stan.png")
+salvar_rankplot(fit, "output/rankplot_stan.png")
 mcmc_hist(fit$draws(c("d_hm", "d_h")))
