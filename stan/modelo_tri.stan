@@ -23,11 +23,11 @@ model {
   theta0 ~ std_normal();
   a ~ lognormal(0, 0.5);
   b ~ normal(0, 5);
-  d_hm ~ normal(0, 1);                         // half-normal, pois d_hm > 0
+  d_hm ~ normal(0, 1);                         // half-normal (d_hm > 0)
   d_h ~ normal(0, 1);
-  // phi ~ uniform(-1, 1) ja esta implicito nos limites
+  // phi ~ U(-1, 1) vem dos limites
 
-  // verossimilhanca: uma coluna (item) por vez
+  // verossimilhanca, item por item
   for (j in 1:J) {
     X0[:, j] ~ bernoulli_logit(a[j] * (theta0 - b[j]));
     X1[:, j] ~ bernoulli_logit(a[j] * (theta1 - b[j]));

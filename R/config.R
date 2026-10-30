@@ -1,4 +1,4 @@
-# Parametros da simulacao (usados por todos os scripts)
+# Parametros da simulacao
 config <- list(
   seed = 15,
 

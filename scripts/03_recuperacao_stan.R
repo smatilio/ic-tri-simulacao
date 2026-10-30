@@ -19,11 +19,11 @@ fit <- mod$sample(
 
 fit$save_object("output/fit_stan.rds")
 
-# 1. Diagnosticos de convergencia
+# Convergencia
 fit$diagnostic_summary()
 fit$summary(c("d_hm", "d_h"))      # compara com verd$delta_hm e verd$delta_h
 
-# 2. Recuperacao
+# Recuperacao
 theta0_hat <- fit$summary("theta0")$mean       # EAP
 a_hat      <- fit$summary("a")$mean
 b_hat      <- fit$summary("b")$mean
@@ -40,7 +40,7 @@ print(round(resultado_stan, 3))
 
 saveRDS(resultado_stan, "output/resultado_stan.rds")
 
-# 3. Graficos de recuperacao
+# Graficos
 png("output/recuperacao_stan.png", width = 1200, height = 1000, res = 120)
 par(mfrow = c(2, 2))
 plot(verd$theta_0, theta0_hat, pch = 16, cex = 0.4,
@@ -54,7 +54,7 @@ plot(verd$phi[usa], phi_hat[usa], pch = 16, cex = 0.4,
 par(mfrow = c(1, 1))
 dev.off()
 
-# 4. Cobertura dos intervalos de 90%
+# Cobertura (IC de 90%)
 cobertura_stan <- c(
   theta = cobertura(verd$theta_0, fit$summary("theta0")),
   a     = cobertura(verd$a,       fit$summary("a")),
@@ -63,7 +63,7 @@ cobertura_stan <- c(
 )
 print(round(cobertura_stan, 3))
 
-# 5. Trajetoria completa: theta_1 e theta_2
+# theta_1 e theta_2
 theta1_hat <- fit$summary("theta1")$mean
 theta2_hat <- fit$summary("theta2")$mean
 print(round(rbind(
@@ -71,7 +71,7 @@ print(round(rbind(
   theta2 = avaliar_recuperacao(verd$theta_2, theta2_hat)
 ), 3))
 
-# 6. Cadeias e posteriori de d_hm e d_h
+# Cadeias de d_hm e d_h
 library(bayesplot)
 salvar_traceplot(fit, verd, "output/traceplot_stan.png")
 salvar_rankplot(fit, "output/rankplot_stan.png")

@@ -2,7 +2,7 @@ rm(list = ls())
 source("R/config.R")
 source("R/funcoes.R")
 
-# 1. Simular os dados
+# Simulacao
 sim <- simular_dados(
   n_ind    = config$n_ind,
   n_itens  = config$n_itens,
@@ -14,7 +14,7 @@ sim <- simular_dados(
 verd  <- sim$verdadeiros
 dados <- sim$dados_stan
 
-# 2. Verificacoes
+# Conferindo
 stopifnot(all(dim(dados$X0) == c(config$n_ind, config$n_itens)),
           all(dim(dados$X1) == c(config$n_ind, config$n_itens)),
           all(dim(dados$X2) == c(config$n_ind, config$n_itens)))
@@ -23,9 +23,9 @@ mean(verd$it)                                        # perto de config$p_uso
 c(mean(dados$X0), mean(dados$X1), mean(dados$X2))    # proporcao de acertos por tempo
 tapply(verd$theta_1 - verd$theta_0, verd$it, mean)   # ganho medio no tempo 1, por grupo
 tapply(verd$theta_2 - verd$theta_0, verd$it, mean)   # ganho medio no tempo 2, por grupo
-cor(rowMeans(dados$X0), verd$theta_0)                # escore bruto deve ser bem correlacionado com theta
+cor(rowMeans(dados$X0), verd$theta_0)                # escore bruto x theta, tem que dar alta
 
-# 3. Graficos
+# Graficos
 cores <- ifelse(verd$it == 1, "blue", "red")
 plot(verd$theta_0, verd$theta_1, col = cores, pch = 16, cex = 0.5,
      xlab = "Habilidade no tempo 0", ylab = "Habilidade no tempo 1")
@@ -34,6 +34,6 @@ plot(verd$theta_0, verd$theta_2, col = cores, pch = 16, cex = 0.5,
      xlab = "Habilidade no tempo 0", ylab = "Habilidade no tempo 2")
 abline(0, 1)
 
-# 4. Salvar
+# Salvando
 saveRDS(sim, "output/simulacao.rds")
 write.csv2(dados_em_tabela(sim), "output/dados_simulados.csv", row.names = FALSE)   # para abrir no Excel

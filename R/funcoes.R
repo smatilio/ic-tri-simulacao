@@ -3,7 +3,7 @@
 
 # Simulacao ------------------------------------------------------------------
 
-# Probabilidade de acerto no 2PL: P = logit^-1(a * (theta - b))
+# Probabilidade de acerto no 2PL
 calcular_p <- function(theta, a, b) {
   eta <- sweep(outer(a, theta, "*"), MARGIN = 1, STATS = a * b, FUN = "-")
   plogis(eta)   # itens x individuos
@@ -15,8 +15,8 @@ simular_x <- function(p) {
            nrow = nrow(p), ncol = ncol(p)))
 }
 
-# Gera os parametros verdadeiros e as respostas nos tempos 0, 1 e 2.
-# Obs: nao mudar a ordem dos sorteios, senao a mesma seed gera outros dados.
+# Simula os parametros e as respostas nos tempos 0, 1 e 2
+# (nao mudar a ordem dos sorteios, muda os dados da seed)
 simular_dados <- function(n_ind, n_itens, p_uso, delta_hm, delta_h, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
 
@@ -45,7 +45,7 @@ simular_dados <- function(n_ind, n_itens, p_uso, delta_hm, delta_h, seed = NULL)
   list(verdadeiros = verdadeiros, dados_stan = dados_stan)
 }
 
-# Dados em tabela: uma linha por pessoa e tempo, com o indicador I e as respostas
+# Dados em tabela, uma linha por pessoa e tempo
 dados_em_tabela <- function(sim) {
   d <- sim$dados_stan
   respostas <- list(d$X0, d$X1, d$X2)
@@ -69,7 +69,7 @@ avaliar_recuperacao <- function(verdadeiro, estimado) {
     RMSE = sqrt(mean((estimado - verdadeiro)^2)))
 }
 
-# Proporcao dos valores verdadeiros dentro do IC de 90% (q5 e q95 do summary)
+# Cobertura do IC de 90%
 cobertura <- function(verdadeiro, resumo)
   mean(verdadeiro >= resumo$q5 & verdadeiro <= resumo$q95)
 
@@ -77,7 +77,6 @@ cobertura <- function(verdadeiro, resumo)
 # Graficos -------------------------------------------------------------------
 
 # Traceplot de d_hm e d_h com o valor verdadeiro tracejado
-# (fundo branco, senao o PNG fica transparente e some no GitHub escuro)
 salvar_traceplot <- function(fit, verd, arquivo) {
   d <- posterior::as_draws_df(fit$draws(c("d_hm", "d_h")))
   nomes <- c("delta[hm]", "delta[h]")
@@ -101,11 +100,11 @@ salvar_traceplot <- function(fit, verd, arquivo) {
     ggplot2::theme_classic(base_family = "sans") +
     ggplot2::theme(strip.placement = "outside", strip.background = ggplot2::element_blank(),
                    strip.text.y.left = ggplot2::element_text(angle = 0, size = 13))
-  ggplot2::ggsave(arquivo, p, width = 8, height = 5, dpi = 150, bg = "white")
+  ggplot2::ggsave(arquivo, p, width = 8, height = 5, dpi = 150, bg = "white")   # sem bg fica transparente no GitHub
   p
 }
 
-# Rank plot de d_hm e d_h: com as cadeias bem misturadas, as linhas ficam perto da tracejada
+# Rank plot de d_hm e d_h
 salvar_rankplot <- function(fit, arquivo) {
   rotulos <- ggplot2::as_labeller(c(d_hm = "delta[hm]", d_h = "delta[h]"),
                                   default = ggplot2::label_parsed)
