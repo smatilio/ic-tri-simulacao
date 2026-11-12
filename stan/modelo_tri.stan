@@ -5,6 +5,7 @@ data {
   array[N, J] int<lower=0, upper=1> X1;        // respostas no tempo 1
   array[N, J] int<lower=0, upper=1> X2;        // respostas no tempo 2
   vector<lower=0, upper=1>[N] I;               // 1 = usa a maquina
+  real<lower=0> phi_max;                       // phi ~ U(-phi_max, phi_max)
 }
 parameters {
   vector[N] theta0;
@@ -12,7 +13,7 @@ parameters {
   vector[J] b;
   real<lower=0> d_hm;                          // efeito humano-maquina
   real d_h;                                    // efeito humano
-  vector<lower=-1, upper=1>[N] phi;
+  vector<lower=-phi_max, upper=phi_max>[N] phi;
 }
 transformed parameters {
   vector[N] theta1 = theta0 + d_hm * (I .* phi) + d_h;
@@ -25,7 +26,7 @@ model {
   b ~ normal(0, 5);
   d_hm ~ normal(0, 1);                         // half-normal (d_hm > 0)
   d_h ~ normal(0, 1);
-  // phi ~ U(-1, 1) vem dos limites
+  // phi ~ U(-phi_max, phi_max) vem dos limites
 
   // verossimilhanca, item por item
   for (j in 1:J) {

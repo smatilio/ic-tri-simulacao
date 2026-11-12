@@ -2,7 +2,8 @@ library(cmdstanr)
 source("R/config.R")
 source("R/funcoes.R")
 
-sim  <- readRDS("output/simulacao.rds")
+pasta <- pasta_simulacao(config)
+sim   <- readRDS(file.path(pasta, "simulacao.rds"))
 dados <- sim$dados_stan
 verd  <- sim$verdadeiros
 
@@ -17,7 +18,7 @@ fit <- mod$sample(
   seed            = config$seed
 )
 
-fit$save_object("output/fit_stan.rds")
+fit$save_object(file.path(pasta, "fit_stan.rds"))
 
 # Convergencia
 fit$diagnostic_summary()
@@ -38,10 +39,10 @@ resultado_stan <- rbind(
 )
 print(round(resultado_stan, 3))
 
-saveRDS(resultado_stan, "output/resultado_stan.rds")
+saveRDS(resultado_stan, file.path(pasta, "resultado_stan.rds"))
 
 # Graficos
-png("output/recuperacao_stan.png", width = 1200, height = 1000, res = 120)
+png(file.path(pasta, "recuperacao_stan.png"), width = 1200, height = 1000, res = 120)
 par(mfrow = c(2, 2))
 plot(verd$theta_0, theta0_hat, pch = 16, cex = 0.4,
      xlab = "theta_0 verdadeiro", ylab = "EAP (Stan)"); abline(0, 1, col = "red")
@@ -73,6 +74,5 @@ print(round(rbind(
 
 # Cadeias de d_hm e d_h
 library(bayesplot)
-salvar_traceplot(fit, verd, "output/traceplot_stan.png")
-salvar_rankplot(fit, "output/rankplot_stan.png")
+salvar_traceplot(fit, verd, file.path(pasta, "traceplot_stan.png"))
 mcmc_hist(fit$draws(c("d_hm", "d_h")))

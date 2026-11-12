@@ -4,7 +4,7 @@
 .Rproj.user/
 
 # Fit do Stan 
-output/fit_stan.rds
+output/**/fit_stan.rds
 
 # Executavel do Stan e recompilado a partir do .stan
 *.exe

@@ -17,13 +17,13 @@ simular_x <- function(p) {
 
 # Simula os parametros e as respostas nos tempos 0, 1 e 2
 # (nao mudar a ordem dos sorteios, muda os dados da seed)
-simular_dados <- function(n_ind, n_itens, p_uso, delta_hm, delta_h, seed = NULL) {
+simular_dados <- function(n_ind, n_itens, p_uso, delta_hm, delta_h, phi_max = 1, seed = NULL) {
   if (!is.null(seed)) set.seed(seed)
 
   # Parametros verdadeiros
   theta_0 <- rnorm(n_ind)
-  it      <- rbinom(n_ind, 1, p_uso)     # 1 = usa a maquina
-  phi     <- runif(n_ind, -1, 1)         # phi verdadeiro, sem multiplicar por it
+  it      <- rbinom(n_ind, 1, p_uso)              # 1 = usa a maquina
+  phi     <- runif(n_ind, -phi_max, phi_max)      # phi verdadeiro, sem multiplicar por it
   a       <- rlnorm(n_itens, 0, 0.18)
   b       <- rnorm(n_itens, 0, 1)
 
@@ -41,7 +41,8 @@ simular_dados <- function(n_ind, n_itens, p_uso, delta_hm, delta_h, seed = NULL)
   verdadeiros <- list(theta_0 = theta_0, theta_1 = theta_1, theta_2 = theta_2,
                       it = it, phi = phi, a = a, b = b,
                       delta_hm = delta_hm, delta_h = delta_h)
-  dados_stan <- list(N = n_ind, J = n_itens, X0 = x_0, X1 = x_1, X2 = x_2, I = it)
+  dados_stan <- list(N = n_ind, J = n_itens, X0 = x_0, X1 = x_1, X2 = x_2, I = it,
+                     phi_max = phi_max)
   list(verdadeiros = verdadeiros, dados_stan = dados_stan)
 }
 
@@ -57,6 +58,40 @@ dados_em_tabela <- function(sim) {
   tab <- tab[order(tab$individuo, tab$tempo), ]
   rownames(tab) <- NULL
   tab
+}
+
+
+# Pasta da simulacao ---------------------------------------------------------
+
+# Nome tirado do config, ex: N1000_J30_uso0.9_hm0.5_h0.1_phi1_seed15
+nome_simulacao <- function(config) {
+  num <- function(x) format(x, scientific = FALSE, trim = TRUE)
+  nome <- paste0("N", num(config$n_ind), "_J", num(config$n_itens),
+                 "_uso", num(config$p_uso), "_hm", num(config$delta_hm),
+                 "_h", num(config$delta_h), "_phi", num(config$phi_max),
+                 "_seed", num(config$seed))
+  if (length(config$rotulo) && nzchar(config$rotulo)) nome <- paste0(nome, "_", config$rotulo)
+  nome
+}
+
+pasta_simulacao <- function(config) file.path("output", nome_simulacao(config))
+
+# Salva os valores usados, a data e o commit do codigo
+salvar_info <- function(config, pasta) {
+  git <- function(...) tryCatch(system2("git", c(...), stdout = TRUE, stderr = FALSE),
+                                error = function(e) character(0),
+                                warning = function(w) character(0))
+  commit <- git("rev-parse", "--short", "HEAD")
+  if (length(commit) == 0) commit <- "?"
+  if (length(git("status", "--porcelain", "R", "scripts", "stan")) > 0)
+    commit <- paste(commit, "(com alteracoes sem commit)")
+  valores <- unlist(config)
+  writeLines(c(paste("simulacao:", basename(pasta)),
+               paste("data:", format(Sys.time(), "%Y-%m-%d %H:%M")),
+               paste("commit:", commit),
+               "",
+               paste(names(valores), "=", valores)),
+             file.path(pasta, "config.txt"))
 }
 
 
@@ -101,19 +136,5 @@ salvar_traceplot <- function(fit, verd, arquivo) {
     ggplot2::theme(strip.placement = "outside", strip.background = ggplot2::element_blank(),
                    strip.text.y.left = ggplot2::element_text(angle = 0, size = 13))
   ggplot2::ggsave(arquivo, p, width = 8, height = 5, dpi = 150, bg = "white")   # sem bg fica transparente no GitHub
-  p
-}
-
-# Rank plot de d_hm e d_h
-salvar_rankplot <- function(fit, arquivo) {
-  rotulos <- ggplot2::as_labeller(c(d_hm = "delta[hm]", d_h = "delta[h]"),
-                                  default = ggplot2::label_parsed)
-  p <- bayesplot::mcmc_rank_overlay(fit$draws(c("d_hm", "d_h")), ref_line = TRUE,
-                                    facet_args = list(labeller = rotulos)) +
-    bayesplot::theme_default(base_family = "sans") +
-    ggplot2::labs(x = "Rank", y = NULL, colour = "Cadeia") +
-    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(linewidth = 1.5)))
-  p <- suppressMessages(p + ggplot2::scale_colour_brewer(palette = "Dark2"))
-  ggplot2::ggsave(arquivo, p, width = 8, height = 3.5, dpi = 150, bg = "white")
   p
 }

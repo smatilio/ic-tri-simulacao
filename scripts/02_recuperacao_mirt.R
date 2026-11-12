@@ -1,8 +1,10 @@
 library(mirt)
+source("R/config.R")
 source("R/funcoes.R")
 
 # Dados simulados e valores verdadeiros
-sim <- readRDS("output/simulacao.rds")
+pasta <- pasta_simulacao(config)
+sim <- readRDS(file.path(pasta, "simulacao.rds"))
 
 x_0     <- sim$dados_stan$X0
 theta_0 <- sim$verdadeiros$theta_0
@@ -38,5 +40,5 @@ plot(b, b_hat, pch = 16,
 par(mfrow = c(1, 1))
 
 # Salvando
-saveRDS(resultado, "output/resultado_mirt.rds")      # para usar no R depois
-write.csv2(round(resultado, 3), "output/resultado_mirt.csv")   # para abrir no Excel
+saveRDS(resultado, file.path(pasta, "resultado_mirt.rds"))      # para usar no R depois
+write.csv2(round(resultado, 3), file.path(pasta, "resultado_mirt.csv"))   # para abrir no Excel

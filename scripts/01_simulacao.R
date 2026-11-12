@@ -2,6 +2,10 @@ rm(list = ls())
 source("R/config.R")
 source("R/funcoes.R")
 
+# Cada simulacao tem sua pasta em output/, com o nome tirado do config
+pasta <- pasta_simulacao(config)
+if (dir.exists(pasta)) stop("A simulacao ", basename(pasta), " ja existe. Mude algum valor no config.R ou apague a pasta.")
+
 # Simulacao
 sim <- simular_dados(
   n_ind    = config$n_ind,
@@ -9,6 +13,7 @@ sim <- simular_dados(
   p_uso    = config$p_uso,
   delta_hm = config$delta_hm,
   delta_h  = config$delta_h,
+  phi_max  = config$phi_max,
   seed     = config$seed
 )
 verd  <- sim$verdadeiros
@@ -35,5 +40,7 @@ plot(verd$theta_0, verd$theta_2, col = cores, pch = 16, cex = 0.5,
 abline(0, 1)
 
 # Salvando
-saveRDS(sim, "output/simulacao.rds")
-write.csv2(dados_em_tabela(sim), "output/dados_simulados.csv", row.names = FALSE)   # para abrir no Excel
+dir.create(pasta, recursive = TRUE)
+saveRDS(sim, file.path(pasta, "simulacao.rds"))
+write.csv2(dados_em_tabela(sim), file.path(pasta, "dados_simulados.csv"), row.names = FALSE)   # para abrir no Excel
+salvar_info(config, pasta)                           # valores usados, data e commit
