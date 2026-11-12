@@ -46,7 +46,7 @@ source("scripts/02_recuperacao_mirt.R")  # 2PL no tempo 0 com mirt
 source("scripts/03_recuperacao_stan.R")  # Stan: 15 a 20 min (4 cadeias em paralelo)
 ```
 
-Cada simulação grava seus resultados numa pasta própria dentro de `output/`. A deste README é a `output/base/`: 1.000 pessoas, 30 itens, 90% usando a máquina, $\delta_{hm}$ = 0,5, $\delta_h$ = 0,1, $\phi_i$ entre −1 e 1 e `seed = 15`. As outras levam no nome só o que muda em relação a ela, como `output/phi0.5/` ou `output/N10000_J100/`. Na pasta também fica um `config.txt` com os valores, a data e o commit do código usados. O primeiro script não sobrescreve uma simulação que já existe; para refazê-la, é preciso apagar a pasta.
+Cada simulação grava seus resultados numa pasta própria dentro de `output/`, junto com um `config.txt` que registra os valores, a data e o commit do código usados. Por enquanto só existe a `output/base/`, que é a simulação deste README: 1.000 pessoas, 30 itens, 90% usando a máquina, $\delta_{hm}$ = 0,5, $\delta_h$ = 0,1, $\phi_i$ entre −1 e 1 e `seed = 15`. Uma simulação nova leva no nome só o que muda em relação à base; se apenas o $\phi_i$ passar a ir de −0,5 a 0,5, por exemplo, a pasta será `output/phi0.5/`. O primeiro script não sobrescreve uma simulação que já existe; para refazê-la, é preciso apagar a pasta.
 
 O ajuste completo do Stan (`fit_stan.rds`, cerca de 120 MB) passa do limite do GitHub, por isso fica fora do Git e é criado de novo pelo terceiro script.
 
