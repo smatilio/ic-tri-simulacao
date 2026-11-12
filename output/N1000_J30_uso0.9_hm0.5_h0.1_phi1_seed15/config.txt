@@ -1,0 +1,15 @@
+simulacao: N1000_J30_uso0.9_hm0.5_h0.1_phi1_seed15
+data: 2026-11-12 15:40
+commit: e330f30
+
+seed = 15
+n_ind = 1000
+n_itens = 30
+p_uso = 0.9
+delta_hm = 0.5
+delta_h = 0.1
+phi_max = 1
+rotulo = 
+stan.chains = 4
+stan.iter_warmup = 1000
+stan.iter_sampling = 1000
