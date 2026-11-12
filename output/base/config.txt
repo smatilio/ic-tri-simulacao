@@ -1,4 +1,4 @@
-simulacao: N1000_J30_uso0.9_hm0.5_h0.1_phi1_seed15
+simulacao: base
 data: 2026-11-12 15:40
 commit: e330f30
 

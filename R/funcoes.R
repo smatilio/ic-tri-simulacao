@@ -63,13 +63,22 @@ dados_em_tabela <- function(sim) {
 
 # Pasta da simulacao ---------------------------------------------------------
 
-# Nome tirado do config, ex: N1000_J30_uso0.9_hm0.5_h0.1_phi1_seed15
+# Nome tirado do config: so o que mudou em relacao a simulacao base,
+# ex: base, phi0.5, N10000_J100
 nome_simulacao <- function(config) {
+  # valores da base (nao mudar, senao os nomes das pastas antigas perdem o sentido)
+  base <- c(n_ind = 1000, n_itens = 30, p_uso = 0.9, delta_hm = 0.5, delta_h = 0.1,
+            phi_max = 1, seed = 15, stan.chains = 4, stan.iter_warmup = 1000,
+            stan.iter_sampling = 1000)
+  siglas <- c(n_ind = "N", n_itens = "J", p_uso = "uso", delta_hm = "hm", delta_h = "h",
+              phi_max = "phi", seed = "seed", stan.chains = "cadeias",
+              stan.iter_warmup = "warmup", stan.iter_sampling = "amostras")
+
+  valores <- as.numeric(unlist(config)[names(base)])
+  if (anyNA(valores)) stop("Falta algum valor no config.R")
+  mudou <- valores != base
   num <- function(x) format(x, scientific = FALSE, trim = TRUE)
-  nome <- paste0("N", num(config$n_ind), "_J", num(config$n_itens),
-                 "_uso", num(config$p_uso), "_hm", num(config$delta_hm),
-                 "_h", num(config$delta_h), "_phi", num(config$phi_max),
-                 "_seed", num(config$seed))
+  nome <- if (any(mudou)) paste0(siglas[mudou], sapply(valores[mudou], num), collapse = "_") else "base"
   if (length(config$rotulo) && nzchar(config$rotulo)) nome <- paste0(nome, "_", config$rotulo)
   nome
 }
