@@ -6,29 +6,51 @@ sim  <- readRDS("output/simulacao.rds")
 dados <- sim$dados_stan
 verd  <- sim$verdadeiros
 
-mod <- cmdstan_model("stan/modelo_tri.stan")
+n_threads <- threads_por_cadeia(config$stan$chains, config$stan$threads_per_chain)
+message(sprintf(
+  "Stan (%s): %d pessoas, %d itens, %d cadeias, %d threads/cadeia",
+  config$cenario, dados$N, dados$J, config$stan$chains, n_threads
+))
 
-fit <- mod$sample(
-  data            = dados,
-  chains          = config$stan$chains,
-  parallel_chains = config$stan$chains,
-  iter_warmup     = config$stan$iter_warmup,
-  iter_sampling   = config$stan$iter_sampling,
-  seed            = config$seed
+mod <- compilar_modelo_stan(config$stan$modelo)
+
+inits <- NULL
+if (isTRUE(config$stan$usar_init_mirt)) {
+  inits <- inits_a_partir_do_mirt(dados$X0, dados$N, dados$J)
+}
+
+args_sample <- list(
+  data              = dados,
+  chains            = config$stan$chains,
+  parallel_chains   = config$stan$chains,
+  threads_per_chain = n_threads,
+  iter_warmup       = config$stan$iter_warmup,
+  iter_sampling     = config$stan$iter_sampling,
+  seed              = config$seed,
+  refresh           = 100,
+  sig_figs          = 6
 )
+if (!is.null(inits)) args_sample$init <- inits
 
-fit$save_object("output/fit_stan.rds")
+t0 <- proc.time()
+fit <- do.call(mod$sample, args_sample)
+tempo_min <- (proc.time() - t0)["elapsed"] / 60
+message(sprintf("Tempo do sample(): %.1f min", tempo_min))
+
+if (isTRUE(config$stan$salvar_fit)) {
+  fit$save_object("output/fit_stan.rds")
+}
 
 # Convergencia
 fit$diagnostic_summary()
 fit$summary(c("d_hm", "d_h"))      # compara com verd$delta_hm e verd$delta_h
 
 # Recuperacao
-theta0_hat <- fit$summary("theta0")$mean       # EAP
+theta0_hat <- fit$summary("theta0")$mean
 a_hat      <- fit$summary("a")$mean
 b_hat      <- fit$summary("b")$mean
 phi_hat    <- fit$summary("phi")$mean
-usa        <- verd$it == 1                     # phi so faz sentido para quem usa
+usa        <- verd$it == 1
 
 resultado_stan <- rbind(
   theta = avaliar_recuperacao(verd$theta_0, theta0_hat),
@@ -76,3 +98,5 @@ library(bayesplot)
 salvar_traceplot(fit, verd, "output/traceplot_stan.png")
 salvar_rankplot(fit, "output/rankplot_stan.png")
 mcmc_hist(fit$draws(c("d_hm", "d_h")))
+
+message(sprintf("Tempo do sample(): %.1f min", tempo_min))

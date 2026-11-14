@@ -2,7 +2,9 @@
 
 Este repositório reúne o estudo de simulação da minha Iniciação Científica em Teoria de Resposta ao Item (TRI), orientada pelo Prof. Gabriel Assunção. A ideia é verificar se, a partir das respostas a um mesmo teste aplicado em três momentos, é possível recuperar o efeito do uso de uma máquina sobre a habilidade das pessoas.
 
-Na simulação atual (configurada em [`R/config.R`](R/config.R), com `seed = 15`), são geradas as respostas de 1.000 pessoas a 30 itens. Os parâmetros são estimados de duas formas: com o pacote mirt, ajustando o 2PL só com as respostas do tempo 0, e com um modelo bayesiano em Stan, que usa os três tempos ao mesmo tempo e estima os efeitos diretamente.
+Na simulação atual (configurada em [`R/config.R`](R/config.R), com `seed = 15`), o cenário `base` gera as respostas de 1.000 pessoas a 30 itens. Troque `cenario` para `medio` (2.000 × 50) ou `grande` (4.000 × 80) para testar o desempenho com mais pessoas e mais itens. Os parâmetros são estimados de duas formas: com o pacote mirt, ajustando o 2PL só com as respostas do tempo 0, e com um modelo bayesiano em Stan, que usa os três tempos ao mesmo tempo e estima os efeitos diretamente.
+
+O ajuste do Stan era a parte lenta (~15 a 20 min no cenário base). Nesta branch o modelo foi reescrito para o mesmo posterior, só que mais rápido: verossimilhança em paralelo (`reduce_sum` + threads), `bernoulli_logit_glm` e chute inicial vindo do mirt.
 
 ## Modelo
 
@@ -43,8 +45,11 @@ renv::restore()                          # instala os pacotes do renv.lock (só 
 
 source("scripts/01_simulacao.R")         # gera os dados (output/simulacao.rds e dados_simulados.csv)
 source("scripts/02_recuperacao_mirt.R")  # 2PL no tempo 0 com mirt
-source("scripts/03_recuperacao_stan.R")  # Stan: 15 a 20 min (4 cadeias em paralelo)
+source("scripts/03_recuperacao_stan.R")  # Stan (4 cadeias; threads por cadeia)
+source("scripts/05_comparar_modelos.R")  # opcional: compara a velocidade do modelo original e do otimizado
 ```
+
+Antes de rodar o 01 de novo, escolha o cenário em `R/config.R` (`base`, `medio` ou `grande`).
 
 O ajuste completo do Stan (`output/fit_stan.rds`, cerca de 120 MB) passa do limite do GitHub, por isso fica fora do Git e é criado de novo pelo terceiro script.
 
@@ -69,6 +74,23 @@ No traceplot, as quatro cadeias se misturam bem em torno dos valores verdadeiros
 ![Recuperação dos parâmetros no Stan](output/recuperacao_stan.png)
 
 A comparação de $\theta_0$, $a$ e $b$ favorece o Stan, que usa os três tempos, enquanto o mirt só tem o tempo 0. Já o efeito individual da máquina ($\phi_i$, no gráfico de baixo à direita) é mal identificado: com 30 itens, o erro de medida de $\theta$ (cerca de 0,3) é da mesma ordem que o efeito individual máximo da máquina (0,5), então as estimativas de $\phi_i$ ficam puxadas para zero. As priors ainda são provisórias e podem ser alteradas posteriormente.
+
+## O que mudou nesta branch (`otimizacao-stan`)
+
+A `main` ficou com o código original. Nesta branch o que foi editado foi só o necessário para o Stan deixar de ser o gargalo e para dá para testar escalas maiores:
+
+| Arquivo | O que mudou |
+|---|---|
+| `stan/modelo_tri.stan` | Mesma probabilidade e mesmas priors; respostas dos 3 tempos empilhadas, `bernoulli_logit_glm` e `reduce_sum`. |
+| `stan/modelo_tri_original.stan` | Cópia do modelo lento, para comparar tempo se precisar. |
+| `R/config.R` | Cenários `base` / `medio` / `grande` e opções de threads, init do mirt e se grava o fit. |
+| `R/funcoes.R` | Funções de compile com threads, init do mirt e threads por cadeia. |
+| `scripts/01_simulacao.R` | Imprime o cenário (n pessoas e n itens). |
+| `scripts/03_recuperacao_stan.R` | Threads, init, cronômetro. |
+| `scripts/05_comparar_modelos.R` | **Novo.** Compara o custo por gradiente do modelo original com o otimizado, nos cenários base, medio e grande. |
+| `.gitignore` | Ignora biblioteca do renv e fits grandes. |
+
+O modelo estatístico (2PL nos três tempos, $\delta_{hm}$, $\delta_h$, $\phi_i$) não mudou.
 
 ## Autor
 

@@ -2,6 +2,9 @@ rm(list = ls())
 source("R/config.R")
 source("R/funcoes.R")
 
+message(sprintf("Cenario '%s': %d pessoas, %d itens",
+                config$cenario, config$n_ind, config$n_itens))
+
 # Simulacao
 sim <- simular_dados(
   n_ind    = config$n_ind,
