@@ -1,0 +1,20 @@
+simulacao: phi0.5
+data: 2026-11-15 15:11
+commit: 29ee966
+
+seed = 15
+cenario = base
+n_ind = 1000
+n_itens = 30
+p_uso = 0.9
+delta_hm = 0.5
+delta_h = 0.1
+phi_max = 0.5
+rotulo = 
+stan.modelo = stan/modelo_tri.stan
+stan.chains = 4
+stan.iter_warmup = 1000
+stan.iter_sampling = 1000
+stan.threads_per_chain = 1
+stan.usar_init_mirt = FALSE
+stan.salvar_fit = TRUE
