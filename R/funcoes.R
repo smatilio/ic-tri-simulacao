@@ -132,7 +132,8 @@ salvar_info <- function(config, pasta) {
                                 warning = function(w) character(0))
   commit <- git("rev-parse", "--short", "HEAD")
   if (length(commit) == 0) commit <- "?"
-  if (length(git("status", "--porcelain", "R", "scripts", "stan")) > 0)
+  # mudanca so no config.R nao conta, os valores ja ficam registrados aqui
+  if (length(git("status", "--porcelain", "R/funcoes.R", "scripts", "stan")) > 0)
     commit <- paste(commit, "(com alteracoes sem commit)")
   valores <- unlist(config)
   writeLines(c(paste("simulacao:", basename(pasta)),
