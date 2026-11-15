@@ -24,6 +24,10 @@ config <- list(
   p_uso    = 0.9,    # proporcao de individuos que usam a maquina
   delta_hm = 0.5,    # efeito humano-maquina
   delta_h  = 0.1,    # efeito humano (comum a todos)
+  phi_max  = 1,      # phi ~ U(-phi_max, phi_max)
+
+  # Vai no fim do nome da pasta, para quando muda o codigo e nao os valores
+  rotulo = "",
 
   # Stan: o ajuste e a parte lenta.
   # ITER_WARMUP / ITER_SAMPLING no ambiente permitem um teste curto (ex.: 250).

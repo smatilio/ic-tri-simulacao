@@ -28,14 +28,15 @@ nucleos     <- parallel::detectCores(logical = FALSE)
 threads_max <- max(1L, nucleos %/% chains)
 
 sim   <- simular_dados(config$n_ind, config$n_itens, config$p_uso,
-                       config$delta_hm, config$delta_h, seed = config$seed)
+                       config$delta_hm, config$delta_h, phi_max = config$phi_max,
+                       seed = config$seed)
 dados <- sim$dados_stan
 
 # Mesmo ponto de partida para todas as variantes
 set.seed(1)
 ponto <- function(id) list(
   theta0 = rnorm(dados$N, 0, 0.5), a = rlnorm(dados$J, 0, 0.2), b = rnorm(dados$J),
-  d_hm = 0.4, d_h = 0.2, phi = runif(dados$N, -0.8, 0.8))
+  d_hm = 0.4, d_h = 0.2, phi = runif(dados$N, -0.8, 0.8) * config$phi_max)
 inits <- lapply(seq_len(chains), ponto)
 
 mod_orig <- compilar_modelo_stan("stan/modelo_tri_original.stan")
@@ -73,4 +74,5 @@ tab <- do.call(rbind, linhas)
 tab$aceleracao <- round(tab$ms_por_gradiente[1] / tab$ms_por_gradiente, 2)
 tab <- cbind(cenario = config$cenario, n_ind = dados$N, n_itens = dados$J, tab)
 print(tab, row.names = FALSE)
-write.csv2(tab, sprintf("output/comparacao_%s.csv", config$cenario), row.names = FALSE)
+dir.create("output/velocidade", showWarnings = FALSE)
+write.csv2(tab, sprintf("output/velocidade/comparacao_%s.csv", config$cenario), row.names = FALSE)

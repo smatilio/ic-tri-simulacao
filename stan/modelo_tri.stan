@@ -17,12 +17,13 @@ functions {
   }
 }
 data {
-  int<lower=1> N;
-  int<lower=1> J;
-  array[N, J] int<lower=0, upper=1> X0;
-  array[N, J] int<lower=0, upper=1> X1;
-  array[N, J] int<lower=0, upper=1> X2;
-  vector<lower=0, upper=1>[N] I;
+  int<lower=1> N;                              // individuos
+  int<lower=1> J;                              // itens
+  array[N, J] int<lower=0, upper=1> X0;        // respostas no tempo 0
+  array[N, J] int<lower=0, upper=1> X1;        // respostas no tempo 1
+  array[N, J] int<lower=0, upper=1> X2;        // respostas no tempo 2
+  vector<lower=0, upper=1>[N] I;               // 1 = usa a maquina
+  real<lower=0> phi_max;                       // phi ~ U(-phi_max, phi_max)
 }
 transformed data {
   // Y[j] = respostas do item j: tempo 0, depois tempo 1, depois tempo 2
@@ -39,9 +40,9 @@ parameters {
   vector[N] theta0;
   vector<lower=0>[J] a;
   vector[J] b;
-  real<lower=0> d_hm;
-  real d_h;
-  vector<lower=-1, upper=1>[N] phi;
+  real<lower=0> d_hm;                          // efeito humano-maquina
+  real d_h;                                    // efeito humano
+  vector<lower=-phi_max, upper=phi_max>[N] phi;
 }
 transformed parameters {
   // Fora do bloco model para continuar disponiveis na saida,
@@ -55,6 +56,7 @@ model {
   b ~ normal(0, 5);
   d_hm ~ normal(0, 1);               // half-normal (d_hm > 0)
   d_h ~ normal(0, 1);
+  // phi ~ U(-phi_max, phi_max) vem dos limites
 
   matrix[3 * N, 1] T = to_matrix(append_row(theta0, append_row(theta1, theta2)));
   target += reduce_sum(soma_parcial, Y, grainsize, T, a, b);
