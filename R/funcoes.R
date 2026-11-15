@@ -1,6 +1,46 @@
 # Funcoes usadas nos scripts
 
 
+# Stan -----------------------------------------------------------------------
+
+# Quantas threads por cadeia, sem passar do numero de cores
+threads_por_cadeia <- function(n_cadeias, n_threads = NA) {
+  if (!is.na(n_threads) && n_threads >= 1) return(as.integer(n_threads))
+  cores <- parallel::detectCores(logical = FALSE)
+  if (is.na(cores) || cores < 1) cores <- parallel::detectCores()
+  max(1L, as.integer(cores %/% n_cadeias))
+}
+
+# Compila o modelo com suporte a threads (reduce_sum)
+compilar_modelo_stan <- function(arquivo) {
+  cmdstanr::cmdstan_model(
+    arquivo,
+    cpp_options = list(stan_threads = TRUE)
+  )
+}
+
+# Chute inicial a partir do 2PL do mirt no tempo 0 (warmup mais curto na pratica)
+inits_a_partir_do_mirt <- function(x_0, n_ind, n_itens = ncol(x_0)) {
+  if (!requireNamespace("mirt", quietly = TRUE)) {
+    message("mirt nao encontrado; Stan comeca sem chute inicial.")
+    return(NULL)
+  }
+  colnames(x_0) <- paste0("item", seq_len(ncol(x_0)))
+  mod0 <- mirt::mirt(x_0, 1, itemtype = "2PL", verbose = FALSE)
+  pars <- mirt::coef(mod0, IRTpars = TRUE, simplify = TRUE)$items
+  theta0 <- as.numeric(mirt::fscores(mod0, method = "EAP")[, 1])
+  function(chain_id) {
+    list(
+      theta0 = theta0,
+      a      = pmax(as.numeric(pars[, "a"]), 0.05),
+      b      = as.numeric(pars[, "b"]),
+      d_hm   = 0.3,
+      d_h    = 0.1,
+      phi    = runif(n_ind, -0.2, 0.2)
+    )
+  }
+}
+
 # Simulacao ------------------------------------------------------------------
 
 # Probabilidade de acerto no 2PL

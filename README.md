@@ -2,7 +2,9 @@
 
 Este repositório reúne o estudo de simulação da minha Iniciação Científica em Teoria de Resposta ao Item (TRI), orientada pelo Prof. Gabriel Assunção. A ideia é verificar se, a partir das respostas a um mesmo teste aplicado em três momentos, é possível recuperar o efeito do uso de uma máquina sobre a habilidade das pessoas.
 
-Na simulação atual (configurada em [`R/config.R`](R/config.R), com `seed = 15`), são geradas as respostas de 1.000 pessoas a 30 itens. Os parâmetros são estimados de duas formas: com o pacote mirt, ajustando o 2PL só com as respostas do tempo 0, e com um modelo bayesiano em Stan, que usa os três tempos ao mesmo tempo e estima os efeitos diretamente.
+Na simulação atual (configurada em [`R/config.R`](R/config.R), com `seed = 15`), o cenário `base` gera as respostas de 1.000 pessoas a 30 itens. Troque `cenario` para `medio` (2.000 × 50) ou `grande` (4.000 × 80) para testar o desempenho com mais pessoas e mais itens. Os parâmetros são estimados de duas formas: com o pacote mirt, ajustando o 2PL só com as respostas do tempo 0, e com um modelo bayesiano em Stan, que usa os três tempos ao mesmo tempo e estima os efeitos diretamente.
+
+O ajuste em Stan levava cerca de 20 minutos no cenário base. Com o modelo reescrito para calcular mais rápido (ver [Otimização do Stan](#otimização-do-stan)), leva cerca de 7.
 
 ## Modelo
 
@@ -43,8 +45,11 @@ renv::restore()                          # instala os pacotes do renv.lock (só 
 
 source("scripts/01_simulacao.R")         # gera os dados e cria a pasta da simulação em output/
 source("scripts/02_recuperacao_mirt.R")  # 2PL no tempo 0 com mirt
-source("scripts/03_recuperacao_stan.R")  # Stan: 15 a 20 min (4 cadeias em paralelo)
+source("scripts/03_recuperacao_stan.R")  # Stan: cerca de 7 min no cenário base (4 cadeias em paralelo)
+source("scripts/05_comparar_modelos.R")  # opcional: compara a velocidade do modelo original e do otimizado
 ```
+
+Antes de rodar o 01, escolha o cenário em `R/config.R` (`base`, `medio` ou `grande`).
 
 Cada simulação grava seus resultados numa pasta própria dentro de `output/`, junto com um `config.txt` que registra os valores, a data e o commit do código usados. Por enquanto só existe a `output/base/`, que é a simulação deste README: 1.000 pessoas, 30 itens, 90% usando a máquina, $\delta_{hm}$ = 0,5, $\delta_h$ = 0,1, $\phi_i$ entre −1 e 1 e `seed = 15`. Uma simulação nova leva no nome só o que muda em relação à base; se apenas o $\phi_i$ passar a ir de −0,5 a 0,5, por exemplo, a pasta será `output/phi0.5/`. O primeiro script não sobrescreve uma simulação que já existe; para refazê-la, é preciso apagar a pasta.
 
@@ -71,6 +76,22 @@ No traceplot, as quatro cadeias se misturam bem em torno dos valores verdadeiros
 ![Recuperação dos parâmetros no Stan](output/base/recuperacao_stan.png)
 
 A comparação de $\theta_0$, $a$ e $b$ favorece o Stan, que usa os três tempos, enquanto o mirt só tem o tempo 0. Já o efeito individual da máquina ($\phi_i$, no gráfico de baixo à direita) é mal identificado: com 30 itens, o erro de medida de $\theta$ (cerca de 0,3) é da mesma ordem que o efeito individual máximo da máquina (0,5), então as estimativas de $\phi_i$ ficam puxadas para zero. As priors ainda são provisórias e podem ser alteradas posteriormente.
+
+## Otimização do Stan
+
+O modelo em [`stan/modelo_tri.stan`](stan/modelo_tri.stan) foi reescrito pelo Andrei para calcular mais rápido, sem mudar a verossimilhança nem as priors. As respostas dos três tempos de cada item são empilhadas num vetor só, a verossimilhança usa `bernoulli_logit_glm`, que já tem o gradiente pronto, e o `reduce_sum` permite dividir os itens entre threads. O modelo anterior ficou em `stan/modelo_tri_original.stan`, e o script `05_comparar_modelos.R` mede o tempo de cada cálculo de gradiente nos dois (medido no computador do Andrei):
+
+| Cenário | Original | Otimizado | Ganho |
+|---|---:|---:|---:|
+| `base` (1.000 × 30) | 15,0 ms | 5,8 ms | 2,6× |
+| `medio` (2.000 × 50) | 107,7 ms | 38,5 ms | 2,8× |
+| `grande` (4.000 × 80) | 358,1 ms | 118,0 ms | 3,0× |
+
+Usar duas threads por cadeia não deixou o ajuste mais rápido nesses cenários. No ajuste completo do cenário base, o tempo caiu de 19,9 para 6,6 minutos.
+
+Para conferir que o modelo continua o mesmo, a simulação base foi ajustada de novo com a versão otimizada, em `output/base_otimizado/`. As métricas de recuperação mudaram no máximo 0,001, o $\delta_{hm}$ ficou em 0,489 (de 0,417 a 0,560) e o $\delta_h$ em 0,102 (de 0,082 a 0,121). Nos 2.062 parâmetros, as diferenças entre as médias a posteriori dos dois ajustes ficaram dentro do esperado pelo erro de Monte Carlo.
+
+O ajuste otimizado também começa as cadeias perto da solução do mirt no tempo 0 (`usar_init_mirt` em `R/config.R`). Como as quatro cadeias partem do mesmo ponto em $\theta_0$, $a$ e $b$, o $\hat{R}$ fica menos exigente; a opção pode ser desligada no `config.R`.
 
 ## Autor
 

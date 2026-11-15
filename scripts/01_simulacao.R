@@ -6,6 +6,9 @@ source("R/funcoes.R")
 pasta <- pasta_simulacao(config)
 if (dir.exists(pasta)) stop("A simulacao ", basename(pasta), " ja existe. Mude algum valor no config.R ou apague a pasta.")
 
+message(sprintf("Cenario '%s': %d pessoas, %d itens",
+                config$cenario, config$n_ind, config$n_itens))
+
 # Simulacao
 sim <- simular_dados(
   n_ind    = config$n_ind,

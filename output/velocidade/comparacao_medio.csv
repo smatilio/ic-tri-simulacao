@@ -1,0 +1,4 @@
+"cenario";"n_ind";"n_itens";"variante";"ms_por_gradiente";"aceleracao"
+"medio";2000;50;"original (1 thread)";107,69;1
+"medio";2000;50;"otimizado (1 thread)";38,53;2,79
+"medio";2000;50;"otimizado (2 threads por cadeia)";38,84;2,77
