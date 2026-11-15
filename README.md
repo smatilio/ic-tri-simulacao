@@ -64,9 +64,9 @@ O ajuste completo do Stan (`fit_stan.rds`, cerca de 120 MB) passa do limite do G
 
 O ajuste do Stan convergiu sem transições divergentes, com $\hat{R}$ máximo de 1,009 e tamanho efetivo de amostra (ESS) mínimo perto de 500, em alguns $b_j$. Os dois efeitos globais foram bem recuperados: o efeito humano-máquina ($\delta_{hm}$, valor verdadeiro 0,5) teve média a posteriori de 0,492, com intervalo de credibilidade de 90% de 0,422 a 0,561, e o efeito humano ($\delta_h$, valor verdadeiro 0,1) ficou em 0,101, de 0,081 a 0,121.
 
-![Traceplot das cadeias de δhm e δh no Stan](output/base/traceplot_stan.png)
+![Traceplot das cadeias de δhm e δh no Stan, uma cadeia por painel](output/base/traceplot_cadeias.png)
 
-No traceplot, as quatro cadeias se misturam bem em torno dos valores verdadeiros (linhas tracejadas). O $\delta_{hm}$ mistura mais devagar que o $\delta_h$ (ESS de 557 contra 1.770), provavelmente por multiplicar o $\phi_i$ de cada pessoa, que é mal identificado. Para os outros parâmetros, a tabela compara as estimativas com os valores verdadeiros (correlação, viés e RMSE) e mostra, no Stan, a cobertura dos intervalos de 90%.
+No traceplot, cada uma das quatro cadeias aparece num painel, e todas oscilam em torno dos valores verdadeiros (linhas tracejadas), sem tendência. O $\delta_{hm}$ mistura mais devagar que o $\delta_h$: a correlação entre sorteios vizinhos fica perto de 0,6 no $\delta_{hm}$ e abaixo de 0,2 no $\delta_h$, e o ESS é de 557 contra 1.770. Isso provavelmente acontece porque o $\delta_{hm}$ multiplica o $\phi_i$ de cada pessoa, que é mal identificado. Para os outros parâmetros, a tabela compara as estimativas com os valores verdadeiros (correlação, viés e RMSE) e mostra, no Stan, a cobertura dos intervalos de 90%.
 
 | Parâmetro | Método | Correlação | Viés | RMSE | Cobertura |
 |---|---|---:|---:|---:|---:|
