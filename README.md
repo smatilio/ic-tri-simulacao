@@ -50,7 +50,7 @@ renv::restore()                          # instala os pacotes do renv.lock (só 
 source("scripts/01_simulacao.R")         # gera os dados e cria a pasta da simulação em output/
 source("scripts/02_recuperacao_mirt.R")  # 2PL no tempo 0 com mirt
 source("scripts/03_recuperacao_stan.R")  # Stan: cerca de 7 min no cenário base (4 cadeias em paralelo)
-source("scripts/04_diagnosticos.R")      # cadeias separadas, autocorrelação, ESS dos phi e theta verdadeiros
+source("scripts/04_diagnosticos.R")      # cadeias separadas, autocorrelação, erro de Monte Carlo, ESS dos phi e theta verdadeiros
 source("scripts/05_comparar_modelos.R")  # opcional: compara a velocidade do modelo original e do otimizado
 ```
 

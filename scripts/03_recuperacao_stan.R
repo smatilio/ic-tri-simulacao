@@ -94,9 +94,8 @@ print(round(rbind(
   theta2 = avaliar_recuperacao(verd$theta_2, theta2_hat)
 ), 3))
 
-# Cadeias de d_hm e d_h
+# Posteriori de d_hm e d_h (os graficos das cadeias ficam no 04)
 library(bayesplot)
-salvar_traceplot(fit, verd, file.path(pasta, "traceplot_stan.png"))
 mcmc_hist(fit$draws(c("d_hm", "d_h")))
 
 message(sprintf("Tempo do sample(): %.1f min", tempo_min))

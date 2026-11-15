@@ -159,37 +159,6 @@ cobertura <- function(verdadeiro, resumo)
   mean(verdadeiro >= resumo$q5 & verdadeiro <= resumo$q95)
 
 
-# Graficos -------------------------------------------------------------------
-
-# Traceplot de d_hm e d_h com o valor verdadeiro tracejado
-salvar_traceplot <- function(fit, verd, arquivo) {
-  d <- posterior::as_draws_df(fit$draws(c("d_hm", "d_h")))
-  nomes <- c("delta[hm]", "delta[h]")
-  cadeias <- data.frame(
-    cadeia   = factor(rep(d$.chain, 2)),
-    iteracao = rep(d$.iteration, 2),
-    valor    = c(d$d_hm, d$d_h),
-    par      = factor(rep(nomes, each = nrow(d)), levels = nomes)
-  )
-  verdadeiro <- data.frame(par = factor(nomes, levels = nomes),
-                           valor = c(verd$delta_hm, verd$delta_h))
-  p <- ggplot2::ggplot(cadeias, ggplot2::aes(iteracao, valor, colour = cadeia)) +
-    ggplot2::geom_line(linewidth = 0.3, alpha = 0.6) +
-    ggplot2::geom_hline(data = verdadeiro, ggplot2::aes(yintercept = valor),
-                        linetype = "dashed", inherit.aes = FALSE) +
-    ggplot2::facet_grid(par ~ ., scales = "free_y", switch = "y",
-                        labeller = ggplot2::label_parsed) +
-    ggplot2::scale_colour_brewer(palette = "Dark2") +
-    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(linewidth = 1.5, alpha = 1))) +
-    ggplot2::labs(x = "Iteração", y = NULL, colour = "Cadeia") +
-    ggplot2::theme_classic(base_family = "sans") +
-    ggplot2::theme(strip.placement = "outside", strip.background = ggplot2::element_blank(),
-                   strip.text.y.left = ggplot2::element_text(angle = 0, size = 13))
-  ggplot2::ggsave(arquivo, p, width = 8, height = 5, dpi = 150, bg = "white")   # sem bg fica transparente no GitHub
-  p
-}
-
-
 # Diagnosticos ---------------------------------------------------------------
 
 tema_diag <- function() {
@@ -218,18 +187,60 @@ acf_por_cadeia <- function(fit, pars, lag_max = 30) {
   }))))
 }
 
-# Autocorrelacao nos lags 1, 5 e 10 e ESS de d_hm e d_h, por cadeia
+# Autocorrelacao (lags 1, 5 e 10), ESS e erro de Monte Carlo da media de d_hm e d_h,
+# por cadeia e com as 4 juntas ("todas"). erro_ingenuo = sd / raiz(sorteios), como se
+# fossem independentes; erro_real = sd / raiz(ESS); vezes = quanto o ingenuo subestima
 tabela_autocorrelacao <- function(fit) {
   pars <- c("d_hm", "d_h")
-  a <- acf_por_cadeia(fit, pars, lag_max = 10)
-  tab <- do.call(rbind, lapply(split(a, list(a$par, a$cadeia)), function(x)
-    data.frame(par = x$par[1], cadeia = x$cadeia[1],
-               lag1 = x$acf[x$lag == 1], lag5 = x$acf[x$lag == 5], lag10 = x$acf[x$lag == 10])))
-  ess <- fit$summary(pars, "ess_bulk")
-  tab$ess_bulk <- ess$ess_bulk[match(tab$par, ess$variable)]
-  tab <- tab[order(match(tab$par, pars), tab$cadeia), ]
+  d <- fit$draws(pars)
+  erro <- function(x) {
+    ess <- posterior::ess_mean(x)
+    c(sd = sd(as.vector(x)), ess = ess, erro_ingenuo = sd(as.vector(x)) / sqrt(length(x)),
+      erro_real = sd(as.vector(x)) / sqrt(ess))
+  }
+  tab <- do.call(rbind, lapply(pars, function(p) {
+    linhas <- lapply(seq_len(dim(d)[2]), function(ch) {
+      x <- as.vector(d[, ch, p])
+      r <- acf(x, lag.max = 10, plot = FALSE)$acf[c(2, 6, 11)]
+      data.frame(par = p, cadeia = as.character(ch), lag1 = r[1], lag5 = r[2], lag10 = r[3],
+                 t(erro(x)))
+    })
+    todas <- data.frame(par = p, cadeia = "todas", lag1 = NA, lag5 = NA, lag10 = NA,
+                        t(erro(matrix(d[, , p], ncol = dim(d)[2]))))
+    do.call(rbind, c(linhas, list(todas)))
+  }))
+  tab$vezes <- tab$erro_real / tab$erro_ingenuo
+  arred <- c(lag1 = 3, lag5 = 3, lag10 = 3, sd = 4, ess = 0, erro_ingenuo = 4, erro_real = 4, vezes = 1)
+  for (k in names(arred)) tab[[k]] <- round(tab[[k]], arred[[k]])
   rownames(tab) <- NULL
   tab
+}
+
+# Cada sorteio contra o seguinte (a correlacao com o "vetor deslocado"), dentro de cada cadeia
+salvar_lag_plot <- function(fit, arquivo) {
+  pars  <- c("d_hm", "d_h")
+  nomes <- c("delta[hm]", "delta[h]")
+  d <- fit$draws(pars)
+  n <- dim(d)[1]
+  pares <- do.call(rbind, lapply(seq_along(pars), function(k) do.call(rbind, lapply(seq_len(dim(d)[2]), function(ch) {
+    x <- as.vector(d[, ch, pars[k]])
+    data.frame(par = nomes[k], agora = x[-n], seguinte = x[-1])
+  }))))
+  pares$par <- factor(pares$par, levels = nomes)
+  r <- sapply(nomes, function(nm) with(pares[pares$par == nm, ], cor(agora, seguinte)))
+  rot <- data.frame(par = factor(nomes, levels = nomes), x = -Inf, y = Inf,
+                    texto = paste("correlação =", virgula(r)))
+  p <- ggplot2::ggplot(pares, ggplot2::aes(agora, seguinte)) +
+    ggplot2::geom_point(size = 0.5, alpha = 0.25, colour = "grey25") +
+    ggplot2::geom_abline(linetype = "dashed", colour = "#D95F02") +
+    ggplot2::geom_text(data = rot, ggplot2::aes(x, y, label = texto),
+                       hjust = -0.1, vjust = 1.5, inherit.aes = FALSE) +
+    ggplot2::facet_wrap(~ par, scales = "free", labeller = ggplot2::label_parsed) +
+    ggplot2::labs(x = "Sorteio t", y = "Sorteio t + 1") +
+    tema_diag() +
+    ggplot2::theme(strip.text = ggplot2::element_text(size = 14))
+  ggplot2::ggsave(arquivo, p, width = 9, height = 4.5, dpi = 150, bg = "white")
+  p
 }
 
 # Traceplot de d_hm e d_h com um painel por cadeia
@@ -253,7 +264,7 @@ salvar_traceplot_cadeias <- function(fit, verd, arquivo) {
     ggplot2::scale_colour_brewer(palette = "Dark2", guide = "none") +
     ggplot2::labs(x = "Iteração", y = NULL) +
     tema_diag()
-  ggplot2::ggsave(arquivo, p, width = 11, height = 5, dpi = 150, bg = "white")
+  ggplot2::ggsave(arquivo, p, width = 11, height = 5, dpi = 150, bg = "white")   # sem bg fica transparente no GitHub
   p
 }
 
@@ -321,27 +332,9 @@ salvar_cadeias_phi <- function(fit, esc, phi_max, arquivo) {
     ggplot2::facet_wrap(~ painel, ncol = 3) +
     ggplot2::scale_y_continuous(limits = c(-phi_max, phi_max)) +
     ggplot2::scale_colour_brewer(palette = "Dark2") +
+    ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(linewidth = 1.5, alpha = 1))) +
     ggplot2::labs(x = "Iteração", y = NULL, colour = "Cadeia") +
-    ggplot2::theme_classic(base_family = "sans")
-  ggplot2::ggsave(arquivo, p, width = 11, height = 6, dpi = 150, bg = "white")
-  p
-}
-
-# ACF dos phi escolhidos, uma linha por cadeia
-salvar_acf_phi <- function(fit, esc, arquivo, lag_max = 30) {
-  vars <- sprintf("phi[%d]", esc$i)
-  rot  <- rotulo_phi(esc)
-  a <- acf_por_cadeia(fit, vars, lag_max)
-  a$painel <- factor(rot[match(a$par, vars)], levels = rot)
-  a$cadeia <- factor(a$cadeia)
-  p <- ggplot2::ggplot(a, ggplot2::aes(lag, acf, colour = cadeia)) +
-    ggplot2::geom_hline(yintercept = 0, colour = "grey50") +
-    ggplot2::geom_line(linewidth = 0.4) +
-    ggplot2::geom_point(size = 0.6) +
-    ggplot2::facet_wrap(~ painel, ncol = 3) +
-    ggplot2::scale_colour_brewer(palette = "Dark2") +
-    ggplot2::labs(x = "Lag", y = NULL, colour = "Cadeia") +
-    ggplot2::theme_classic(base_family = "sans")
+    tema_diag()
   ggplot2::ggsave(arquivo, p, width = 11, height = 6, dpi = 150, bg = "white")
   p
 }

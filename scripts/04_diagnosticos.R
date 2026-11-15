@@ -15,10 +15,13 @@ data.frame(lag    = c(1, 5, 10),
            na_mao = sapply(c(1, 5, 10), autocor_na_mao, x = x),
            acf    = acf(x, lag.max = 10, plot = FALSE)$acf[c(2, 6, 11)])
 
-# d_hm e d_h: autocorrelacao e ESS por cadeia, traceplot e ACF com as cadeias separadas
+# d_hm e d_h: autocorrelacao, ESS e erro de Monte Carlo por cadeia,
+# sorteio x seguinte, traceplot e ACF com as cadeias separadas
 tab_acf <- tabela_autocorrelacao(fit)
-print(tab_acf, digits = 3)
-write.csv2(tab_acf, file.path(pasta, "autocorrelacao.csv"), row.names = FALSE)
+tab_acf
+options(scipen = 999)   # sem notacao cientifica no csv (7e-04 vira 0,0007)
+write.csv2(tab_acf, file.path(pasta, "autocorrelacao.csv"), row.names = FALSE, na = "")
+salvar_lag_plot(fit, file.path(pasta, "sorteio_seguinte.png"))
 salvar_traceplot_cadeias(fit, verd, file.path(pasta, "traceplot_cadeias.png"))
 salvar_acf_cadeias(fit, file.path(pasta, "acf_cadeias.png"))
 
@@ -28,7 +31,6 @@ summary(ess_phi)
 escolhidos <- escolher_phi(fit, verd)
 escolhidos
 salvar_cadeias_phi(fit, escolhidos, config$phi_max, file.path(pasta, "cadeias_phi.png"))
-salvar_acf_phi(fit, escolhidos, file.path(pasta, "acf_phi.png"))
 
 # Theta verdadeiro nos tres tempos
 salvar_thetas_verdadeiros(verd, file.path(pasta, "thetas_verdadeiros.png"))
