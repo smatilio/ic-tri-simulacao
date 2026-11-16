@@ -31,6 +31,3 @@ summary(ess_phi)
 escolhidos <- escolher_phi(fit, verd)
 escolhidos
 salvar_cadeias_phi(fit, escolhidos, config$phi_max, file.path(pasta, "cadeias_phi.png"))
-
-# Theta verdadeiro nos tres tempos
-salvar_thetas_verdadeiros(verd, file.path(pasta, "thetas_verdadeiros.png"))

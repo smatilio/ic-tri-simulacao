@@ -338,25 +338,3 @@ salvar_cadeias_phi <- function(fit, esc, phi_max, arquivo) {
   ggplot2::ggsave(arquivo, p, width = 11, height = 6, dpi = 150, bg = "white")
   p
 }
-
-# Theta verdadeiro nos tres tempos e a mudanca de um tempo para o outro
-salvar_thetas_verdadeiros <- function(verd, arquivo) {
-  usa   <- verd$it == 1
-  cores <- ifelse(usa, "blue", "red")
-  png(arquivo, width = 1200, height = 1000, res = 120)
-  on.exit(dev.off())
-  par(mfrow = c(2, 2))
-  plot(verd$theta_0, verd$theta_1, col = cores, pch = 16, cex = 0.4,
-       xlab = "Habilidade no tempo 0", ylab = "Habilidade no tempo 1"); abline(0, 1)
-  legend("topleft", c("usa a máquina", "não usa"), col = c("blue", "red"), pch = 16, bty = "n")
-  plot(verd$theta_0, verd$theta_2, col = cores, pch = 16, cex = 0.4,
-       xlab = "Habilidade no tempo 0", ylab = "Habilidade no tempo 2"); abline(0, 1)
-  hist(verd$theta_1[usa] - verd$theta_0[usa], breaks = 30, col = "lightblue", border = "white",
-       main = "", xlab = "Mudança do tempo 0 para o 1", ylab = "Pessoas")
-  abline(v = verd$delta_h, col = "red", lwd = 2)
-  legend("topright", c("quem usa", "quem não usa (todos iguais)"), fill = c("lightblue", NA),
-         border = c("white", NA), col = c(NA, "red"), lwd = c(NA, 2), bty = "n", cex = 0.8)
-  hist(verd$theta_2[usa] - verd$theta_1[usa], breaks = 30, col = "lightblue", border = "white",
-       main = "", xlab = "Mudança do tempo 1 para o 2", ylab = "Pessoas")
-  abline(v = verd$delta_h, col = "red", lwd = 2)
-}

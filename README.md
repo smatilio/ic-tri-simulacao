@@ -35,10 +35,6 @@ A tabela abaixo traz os valores usados para gerar os dados e as priors do modelo
 | $a_j$ | discriminação do item | lognormal(0; 0,18) | lognormal(0; 0,5) |
 | $b_j$ | dificuldade do item | $N(0, 1)$ | $N(0, 5)$ |
 
-O gráfico abaixo mostra os valores verdadeiros de $\theta$ na simulação base. Em cima está a habilidade nos tempos 1 e 2 contra a do tempo 0, em azul para quem usa a máquina e em vermelho para quem não usa. Embaixo está a mudança de um tempo para o outro entre quem usa a máquina; a linha vermelha marca a mudança de quem não usa, que é sempre $\delta_h$ = 0,1. Do tempo 0 para o 1, quem usa a máquina muda entre −0,4 e 0,6, dependendo do sinal de $\phi_i$. Do tempo 1 para o 2 todos ganham, porque o efeito depende de $\phi_i^2$, mas a maioria ganha pouco. Perto da variação de $\theta$ entre as pessoas, essas mudanças são pequenas, e os pontos ficam perto da diagonal.
-
-![Habilidade verdadeira nos três tempos e mudança entre eles](output/base/thetas_verdadeiros.png)
-
 ## Como reproduzir
 
 As funções e os parâmetros da simulação ficam em `R/`, o modelo em `stan/` e a execução está dividida em três scripts numerados em `scripts/`. O projeto usa R 4.5 e CmdStan 2.40 (no Windows, também é preciso o [Rtools](https://cran.r-project.org/bin/windows/Rtools/) para compilar o modelo). Ao abrir `ic-tri-simulacao.Rproj` no RStudio, o [renv](https://rstudio.github.io/renv/) é ativado sozinho e usa as versões de pacotes registradas no `renv.lock`; no Windows, o `.Rprofile` guarda essa biblioteca em `%LOCALAPPDATA%\R\renv\library`, fora da pasta do projeto. Com o projeto aberto, basta rodar:
@@ -50,7 +46,7 @@ renv::restore()                          # instala os pacotes do renv.lock (só 
 source("scripts/01_simulacao.R")         # gera os dados e cria a pasta da simulação em output/
 source("scripts/02_recuperacao_mirt.R")  # 2PL no tempo 0 com mirt
 source("scripts/03_recuperacao_stan.R")  # Stan: cerca de 7 min no cenário base (4 cadeias em paralelo)
-source("scripts/04_diagnosticos.R")      # cadeias separadas, autocorrelação, erro de Monte Carlo, ESS dos phi e theta verdadeiros
+source("scripts/04_diagnosticos.R")      # cadeias separadas, autocorrelação, erro de Monte Carlo e ESS dos phi
 source("scripts/05_comparar_modelos.R")  # opcional: compara a velocidade do modelo original e do otimizado
 ```
 
